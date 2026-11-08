@@ -955,7 +955,14 @@ function setupTVRemote() {
           document.activeElement.click();
         }
         break;
-      case 461: // webOS Back button
+      case 415: // TV Remote Play button
+        if (!state.running) startTest();
+        break;
+      case 413: // TV Remote Stop button
+        if (state.running) stopTest();
+        break;
+      case 461: // LG webOS Back
+      case 10009: // Samsung Tizen Return
       case 27: // Escape
         if (state.tab !== 'test') {
           setTab('test');

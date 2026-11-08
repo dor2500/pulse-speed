@@ -1,0 +1,12 @@
+{
+  "name": "pulse-speed-stremio-addon",
+  "version": "1.5.0",
+  "description": "Pulse Speed Test Community Addon for Stremio",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "keywords": ["stremio", "addon", "speedtest", "pulse", "bandwidth"],
+  "author": "Dor",
+  "license": "MIT"
+}

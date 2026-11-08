@@ -14,20 +14,32 @@ It measures ping, jitter, download, upload and **bufferbloat / loaded latency** 
 
 | Platform | Package | Description |
 |:---|:---|:---|
-| **Android** | [`Pulse-v1.5.0.apk`](https://github.com/dor2500/pulse-speed/releases/latest) | Android 8.0+ APK with Material You & Jetpack Compose |
-| **LG webOS TV** | [`Pulse-v1.5.0-webos.ipk`](https://github.com/dor2500/pulse-speed/releases/latest) | LG Smart TV `.ipk` package with full TV remote & Magic Remote support |
-| **Windows** | [`Pulse.exe`](https://github.com/dor2500/pulse-speed/releases/latest) | Standalone portable executable (no install required, 90 KB) |
-| **macOS** | [`Pulse-v1.5.0-mac.zip`](https://github.com/dor2500/pulse-speed/releases/latest) | macOS App bundle |
-| **Web** | [`Pulse-v1.5.0-web.zip`](https://github.com/dor2500/pulse-speed/releases/latest) | Standalone HTML5 web client |
+| **Android / Android TV / Fire TV** | [`Pulse-v1.5.0.apk`](https://github.com/dor2500/pulse-speed/releases/latest) | Android 8.0+ APK with Leanback TV launcher banner & Material You |
+| **Stremio Addon** | [`Pulse-v1.5.0-stremio-addon.zip`](https://github.com/dor2500/pulse-speed/releases/latest) | Stremio Community Addon with `stremio://` protocol support |
+| **LG webOS Smart TV** | [`Pulse-v1.5.0-webos.ipk`](https://github.com/dor2500/pulse-speed/releases/latest) | LG Smart TV `.ipk` package with TV remote & Magic Remote support |
+| **Samsung Smart TV (Tizen)** | [`Pulse-v1.5.0-tizen.wgt`](https://github.com/dor2500/pulse-speed/releases/latest) | Samsung Tizen TV widget package (`.wgt`) |
+| **Kodi Media Center** | [`Pulse-v1.5.0-kodi-addon.zip`](https://github.com/dor2500/pulse-speed/releases/latest) | Kodi Python addon (`plugin.program.pulsespeed`) |
+| **Linux (Debian / Ubuntu / Pi)** | [`pulse_1.5.0_all.deb`](https://github.com/dor2500/pulse-speed/releases/latest) | Native Debian/Ubuntu package with app launcher |
+| **Linux (Tarball)** | [`Pulse-v1.5.0-linux.tar.gz`](https://github.com/dor2500/pulse-speed/releases/latest) | Universal portable Linux archive |
+| **Windows Desktop** | [`Pulse.exe`](https://github.com/dor2500/pulse-speed/releases/latest) / [`.zip`](https://github.com/dor2500/pulse-speed/releases/latest) | Standalone portable executable (no install required, 90 KB) |
+| **macOS Desktop** | [`Pulse-v1.5.0-mac.zip`](https://github.com/dor2500/pulse-speed/releases/latest) | Standalone `Pulse.app` bundle for Mac |
+| **Universal CLI** | [`pulse-cli.py`](https://github.com/dor2500/pulse-speed/releases/latest) | Zero-dependency command-line speed tester |
+| **Web Standalone** | [`Pulse-v1.5.0-web.zip`](https://github.com/dor2500/pulse-speed/releases/latest) | Standalone HTML5 web client |
 
 <div dir="rtl">
 
 ### בעברית
 
-**Pulse** היא אפליקציית בדיקת מהירות אינטרנט מהירה ומודרנית בעיצוב Material You ל-Android, למחשבי Windows ו-Mac, ולטלוויזיות חכמות של LG (מערכת webOS).
+**Pulse** היא אפליקציית בדיקת מהירות אינטרנט מהירה, מדויקת ומודרנית התומכת כעת כמעט בכל פלטפורמה אפשרית:
+- **סמארטפונים וטאבלטים**: Android (קובץ APK).
+- **טלוויזיות חכמות וסטרימרים**: טלוויזיות LG (קובץ IPK), טלוויזיות סמסונג (קובץ Tizen WGT), מכשירי Android TV, Google TV ו-Amazon Fire TV.
+- **מרכזי מדיה**: תוסף מובנה ל-**Stremio** ותוסף ל-**Kodi**.
+- **מחשבים שולחניים**: Windows (קובץ EXE עצמאי ללא התקנה), Mac (אפליקציית Pulse.app) ו-Linux (חבילת `.deb` ו-tar.gz).
+- **טרמינל / CLI**: כלי פקודה מהיר (`pulse-cli.py`) לשרתים ולמפתחים.
+
 היא מודדת פינג, ג׳יטר, הורדה, העלאה, **מדד Bufferbloat (פינג בעומס)**, אבחון רשת Wi-Fi, שמירה וייצוא היסטוריה ל-CSV ותמיכה מלאה בעברית.
 
-**הורדות:** הורידו את הגרסה המתאימה לכם (קובץ APK לאנדרואיד, IPK לטלוויזיות LG, קובץ EXE לחלונות או ZIP למק) מ[דף הגרסאות](https://github.com/dor2500/pulse-speed/releases/latest).
+**הורדות:** הורידו את הגרסה המתאימה לכם מ[דף הגרסאות הרשמי ב-GitHub](https://github.com/dor2500/pulse-speed/releases/latest).
 
 </div>
 

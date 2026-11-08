@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<addon id="plugin.program.pulsespeed" name="Pulse Speed Test" version="1.5.0" provider-name="Dor">
+  <requires>
+    <import addon="xbmc.python" version="3.0.0"/>
+  </requires>
+  <extension point="xbmc.python.pluginsource" library="default.py">
+    <provides>executable</provides>
+  </extension>
+  <extension point="xbmc.addon.metadata">
+    <summary lang="en">Internet speed test with Bufferbloat for Kodi</summary>
+    <summary lang="he">בדיקת מהירות אינטרנט ו-Bufferbloat לקודי</summary>
+    <description lang="en">Measure ping, jitter, download, upload and bufferbloat against Cloudflare, Ookla, FAST and LibreSpeed servers directly on Kodi.</description>
+    <description lang="he">מדידת פינג, ג'יטר, מהירות הורדה, העלאה ומדד Bufferbloat בקודי.</description>
+    <platform>all</platform>
+    <assets>
+      <icon>icon.png</icon>
+    </assets>
+  </extension>
+</addon>
