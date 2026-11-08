@@ -13,6 +13,9 @@ import com.dorp.pulse.data.TestResult
 import com.dorp.pulse.data.currentNetwork
 import com.dorp.pulse.engine.ServerInfo
 import com.dorp.pulse.engine.SpeedTestEngine
+import com.dorp.pulse.update.ReleaseInfo
+import com.dorp.pulse.update.Updater
+import java.io.File
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -24,6 +27,16 @@ import kotlinx.coroutines.launch
 enum class Phase { IDLE, CONNECTING, PING, DOWNLOAD, UPLOAD, DONE, ERROR }
 
 enum class TestError { OFFLINE, SERVER }
+
+sealed interface UpdateState {
+    data object Idle : UpdateState
+    data object Checking : UpdateState
+    data object UpToDate : UpdateState
+    data class Available(val info: ReleaseInfo) : UpdateState
+    data class Downloading(val info: ReleaseInfo, val progress: Float) : UpdateState
+    data class Ready(val info: ReleaseInfo, val apk: File) : UpdateState
+    data object Failed : UpdateState
+}
 
 data class TestUiState(
     val phase: Phase = Phase.IDLE,
@@ -59,8 +72,55 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
         override fun onLost(network: Network) = refreshNetwork()
     }
 
+    private val _update = MutableStateFlow<UpdateState>(UpdateState.Idle)
+    val update: StateFlow<UpdateState> = _update.asStateFlow()
+    private var updateJob: Job? = null
+
     init {
         runCatching { connectivity?.registerDefaultNetworkCallback(networkCallback) }
+        checkForUpdates(silent = true)
+    }
+
+    /** A silent check (at launch) never shows an error or "up to date"; it only surfaces a newer version. */
+    fun checkForUpdates(silent: Boolean = false) {
+        if (updateJob?.isActive == true) return
+        updateJob = viewModelScope.launch {
+            if (!silent) _update.value = UpdateState.Checking
+            _update.value = try {
+                val info = Updater.fetchLatest()
+                when {
+                    Updater.isNewer(info.version, BuildConfig.VERSION_NAME) -> UpdateState.Available(info)
+                    silent -> UpdateState.Idle
+                    else -> UpdateState.UpToDate
+                }
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: Exception) {
+                if (silent) UpdateState.Idle else UpdateState.Failed
+            }
+        }
+    }
+
+    fun downloadUpdate() {
+        val info = when (val u = _update.value) {
+            is UpdateState.Available -> u.info
+            is UpdateState.Ready -> return
+            else -> return
+        }
+        if (updateJob?.isActive == true) return
+        updateJob = viewModelScope.launch {
+            _update.value = UpdateState.Downloading(info, 0f)
+            _update.value = try {
+                val apk = Updater.download(getApplication(), info) { p ->
+                    _update.value = UpdateState.Downloading(info, p)
+                }
+                UpdateState.Ready(info, apk)
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: Exception) {
+                UpdateState.Available(info)
+            }
+        }
     }
 
     private fun refreshNetwork() {

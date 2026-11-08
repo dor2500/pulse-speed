@@ -62,5 +62,21 @@
     <string name="about_version">גרסה</string>
     <string name="about_engine">המדידה מתבצעת מול רשת בדיקות המהירות של Cloudflare</string>
     <string name="about_source">קוד המקור ב-GitHub</string>
+    <string name="settings_language">שפה</string>
+    <string name="lang_system">מערכת</string>
+    <string name="updates_title">עדכונים</string>
+    <string name="update_current">הגרסה המותקנת: %s</string>
+    <string name="update_check">בדיקת עדכונים</string>
+    <string name="update_checking">מחפש גרסה חדשה ב-GitHub…</string>
+    <string name="update_up_to_date">יש לך את הגרסה העדכנית (%s)</string>
+    <string name="update_error">לא הצלחנו לבדוק עדכונים. בדקו את החיבור ונסו שוב.</string>
+    <string name="update_available">גרסה %s זמינה</string>
+    <string name="update_available_desc">%1$s MB · הגרסה שלך: %2$s</string>
+    <string name="update_downloading">מוריד… %d%%</string>
+    <string name="update_ready">ההורדה הסתיימה. פותח את ההתקנה…</string>
+    <string name="update_permission">אשרו ל-Pulse להתקין עדכונים, ואז חזרו לאפליקציה.</string>
+    <string name="update_btn_install">הורדה והתקנה</string>
+    <string name="update_btn_open_installer">התקנת העדכון</string>
+    <string name="update_whats_new">מה חדש</string>
     <string name="share_text">בדיקת מהירות Pulse\n↓ הורדה %1$s\n↑ העלאה %2$s\nפינג %3$s ms · ג׳יטר %4$s ms</string>
 </resources>

@@ -41,7 +41,8 @@ It needs Android 8.0 or newer.
 - **Connection details**: provider, server location, IP, network type and HTTP protocol
 - **Share** a result as text
 - Units in **Mbps or MB/s**, and three test lengths (quick, standard, thorough)
-- **English and Hebrew** with full RTL support
+- **English and Hebrew** with full RTL support, switchable inside the app
+- **In-app updates**: checks GitHub Releases, downloads the new APK and opens the installer
 
 ## How the measurement works
 

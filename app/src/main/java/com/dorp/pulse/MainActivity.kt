@@ -1,5 +1,6 @@
 package com.dorp.pulse
 
+import android.content.Context
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.SystemBarStyle
@@ -42,7 +43,11 @@ import androidx.compose.material.icons.outlined.Speed
 import androidx.compose.material.icons.rounded.History
 import androidx.compose.material.icons.rounded.Settings
 import androidx.compose.material.icons.rounded.Speed
+import androidx.compose.material3.Badge
+import androidx.compose.material3.BadgedBox
 import androidx.compose.material3.Icon
+import androidx.compose.ui.platform.LocalContext
+import android.app.Activity
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -55,6 +60,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.res.stringResource
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.dorp.pulse.data.localizedContext
 import com.dorp.pulse.ui.HistoryScreen
 import com.dorp.pulse.ui.SettingsScreen
 import com.dorp.pulse.ui.TestScreen
@@ -62,6 +68,10 @@ import com.dorp.pulse.ui.theme.PulseTheme
 import com.dorp.pulse.ui.theme.isDark
 
 class MainActivity : ComponentActivity() {
+    override fun attachBaseContext(newBase: Context) {
+        super.attachBaseContext(localizedContext(newBase))
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
@@ -88,6 +98,8 @@ private fun AppRoot(vm: MainViewModel) {
     val state by vm.state.collectAsStateWithLifecycle()
     val settings by vm.settingsStore.settings.collectAsStateWithLifecycle()
     val history by vm.historyStore.items.collectAsStateWithLifecycle()
+    val update by vm.update.collectAsStateWithLifecycle()
+    val activity = LocalContext.current as? Activity
     var tab by rememberSaveable { mutableIntStateOf(0) }
 
     Scaffold(
@@ -98,7 +110,10 @@ private fun AppRoot(vm: MainViewModel) {
                 items = listOf(
                     NavSpec(Icons.Rounded.Speed, Icons.Outlined.Speed, stringResource(R.string.tab_test)),
                     NavSpec(Icons.Rounded.History, Icons.Outlined.History, stringResource(R.string.tab_history)),
-                    NavSpec(Icons.Rounded.Settings, Icons.Outlined.Settings, stringResource(R.string.tab_settings)),
+                    NavSpec(
+                        Icons.Rounded.Settings, Icons.Outlined.Settings, stringResource(R.string.tab_settings),
+                        badge = update is UpdateState.Available || update is UpdateState.Ready,
+                    ),
                 ),
                 onSelect = { tab = it },
             )
@@ -112,13 +127,24 @@ private fun AppRoot(vm: MainViewModel) {
             when (t) {
                 0 -> TestScreen(state, settings.unit, vm::start, vm::cancel, padding)
                 1 -> HistoryScreen(history, settings.unit, vm.historyStore::delete, vm.historyStore::clear, padding)
-                else -> SettingsScreen(settings, vm.settingsStore::update, padding)
+                else -> SettingsScreen(
+                    settings = settings,
+                    onChange = { transform ->
+                        val before = settings.language
+                        vm.settingsStore.update(transform)
+                        if (vm.settingsStore.settings.value.language != before) activity?.recreate()
+                    },
+                    update = update,
+                    onCheckUpdate = { vm.checkForUpdates() },
+                    onDownloadUpdate = vm::downloadUpdate,
+                    contentPadding = padding,
+                )
             }
         }
     }
 }
 
-private class NavSpec(val selectedIcon: ImageVector, val icon: ImageVector, val label: String)
+private class NavSpec(val selectedIcon: ImageVector, val icon: ImageVector, val label: String, val badge: Boolean = false)
 
 /**
  * A detached, floating pill navigation bar (16dp from the screen edges). The active
@@ -177,11 +203,13 @@ private fun NavPill(item: NavSpec, selected: Boolean, modifier: Modifier, onClic
                 .padding(horizontal = 16.dp, vertical = 10.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            Icon(
-                if (selected) item.selectedIcon else item.icon,
-                contentDescription = if (selected) null else item.label,
-                tint = content,
-            )
+            BadgedBox(badge = { if (item.badge) Badge() }) {
+                Icon(
+                    if (selected) item.selectedIcon else item.icon,
+                    contentDescription = if (selected) null else item.label,
+                    tint = content,
+                )
+            }
             if (selected) {
                 Spacer(Modifier.width(8.dp))
                 Text(item.label, style = MaterialTheme.typography.labelLarge, color = content, maxLines = 1)

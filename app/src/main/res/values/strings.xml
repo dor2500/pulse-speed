@@ -60,5 +60,21 @@
     <string name="about_version">Version</string>
     <string name="about_engine">Measured against the Cloudflare speed test network</string>
     <string name="about_source">Source code on GitHub</string>
+    <string name="settings_language">Language</string>
+    <string name="lang_system">System</string>
+    <string name="updates_title">Updates</string>
+    <string name="update_current">You\'re on version %s</string>
+    <string name="update_check">Check for updates</string>
+    <string name="update_checking">Checking GitHub for a new version…</string>
+    <string name="update_up_to_date">You\'re on the latest version (%s)</string>
+    <string name="update_error">Couldn\'t check for updates. Check your connection and try again.</string>
+    <string name="update_available">Version %s is available</string>
+    <string name="update_available_desc">%1$s MB · you have %2$s</string>
+    <string name="update_downloading">Downloading… %d%%</string>
+    <string name="update_ready">Download complete. Opening the installer…</string>
+    <string name="update_permission">Allow Pulse to install updates, then come back.</string>
+    <string name="update_btn_install">Download &amp; install</string>
+    <string name="update_btn_open_installer">Install update</string>
+    <string name="update_whats_new">What\'s new</string>
     <string name="share_text">Pulse speed test\n↓ Download %1$s\n↑ Upload %2$s\nPing %3$s ms · Jitter %4$s ms</string>
 </resources>

@@ -13,6 +13,8 @@ import org.json.JSONObject
 enum class ThemeMode { SYSTEM, LIGHT, DARK }
 enum class SpeedUnit { MBPS, MBYTES }
 enum class TestLength(val seconds: Int) { QUICK(6), STANDARD(10), LONG(15) }
+/** In-app language override. SYSTEM follows the phone (or Android 13+ per-app language). */
+enum class AppLanguage(val tag: String?) { SYSTEM(null), ENGLISH("en"), HEBREW("iw") }
 enum class NetworkKind { WIFI, CELLULAR, ETHERNET, VPN, OTHER, NONE }
 
 data class AppSettings(
@@ -20,7 +22,22 @@ data class AppSettings(
     val dynamicColor: Boolean = true,
     val unit: SpeedUnit = SpeedUnit.MBPS,
     val length: TestLength = TestLength.STANDARD,
+    val language: AppLanguage = AppLanguage.SYSTEM,
 )
+
+private fun storedLanguage(prefs: android.content.SharedPreferences): AppLanguage =
+    AppLanguage.entries.firstOrNull { it.name == prefs.getString("lang", null) } ?: AppLanguage.SYSTEM
+
+/** Wraps [base] in the user's chosen language, if they picked one in the app. */
+fun localizedContext(base: Context): Context {
+    val tag = storedLanguage(base.getSharedPreferences("settings", Context.MODE_PRIVATE)).tag ?: return base
+    val locale = java.util.Locale.forLanguageTag(tag)
+    java.util.Locale.setDefault(locale)
+    val config = android.content.res.Configuration(base.resources.configuration)
+    config.setLocale(locale)
+    config.setLayoutDirection(locale)
+    return base.createConfigurationContext(config)
+}
 
 class SettingsStore(context: Context) {
     private val prefs = context.getSharedPreferences("settings", Context.MODE_PRIVATE)
@@ -35,7 +52,8 @@ class SettingsStore(context: Context) {
             .putBoolean("dynamic", s.dynamicColor)
             .putString("unit", s.unit.name)
             .putString("length", s.length.name)
-            .apply()
+            .putString("lang", s.language.name)
+            .commit() // committed synchronously: a language change recreates the activity right after
     }
 
     private fun load() = AppSettings(
@@ -43,6 +61,7 @@ class SettingsStore(context: Context) {
         dynamicColor = prefs.getBoolean("dynamic", true),
         unit = enumOr(prefs.getString("unit", null), SpeedUnit.MBPS),
         length = enumOr(prefs.getString("length", null), TestLength.STANDARD),
+        language = storedLanguage(prefs),
     )
 
     private inline fun <reified T : Enum<T>> enumOr(name: String?, fallback: T): T =
