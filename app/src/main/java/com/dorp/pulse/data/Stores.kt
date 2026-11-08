@@ -11,12 +11,18 @@ import com.dorp.pulse.engine.TestSource
 import org.json.JSONArray
 import org.json.JSONObject
 
-enum class ThemeMode { SYSTEM, LIGHT, DARK }
+enum class ThemeMode { SYSTEM, LIGHT, DARK, OLED }
 enum class SpeedUnit { MBPS, MBYTES }
 enum class TestLength(val seconds: Int) { QUICK(6), STANDARD(10), LONG(15) }
 /** In-app language override. SYSTEM follows the phone (or Android 13+ per-app language). */
 enum class AppLanguage(val tag: String?) { SYSTEM(null), ENGLISH("en"), HEBREW("iw") }
 enum class NetworkKind { WIFI, CELLULAR, ETHERNET, VPN, OTHER, NONE }
+
+data class ConnectionDetails(
+    val network: NetworkKind,
+    val wifiLinkSpeedMbps: Int? = null,
+    val wifiFrequencyBand: String? = null,
+)
 
 data class AppSettings(
     val theme: ThemeMode = ThemeMode.SYSTEM,
@@ -82,6 +88,9 @@ data class TestResult(
     val server: String,
     val network: NetworkKind,
     val source: TestSource = TestSource.CLOUDFLARE,
+    val downLoadedPingMs: Double? = null,
+    val upLoadedPingMs: Double? = null,
+    val bufferbloatGrade: String? = null,
 )
 
 class HistoryStore(context: Context) {
@@ -93,16 +102,39 @@ class HistoryStore(context: Context) {
     fun delete(time: Long) = save(_items.value.filterNot { it.time == time })
     fun clear() = save(emptyList())
 
+    fun exportCsv(): String {
+        val sb = StringBuilder("Timestamp,Date,Source,Server,ISP,Network,Download_Mbps,Upload_Mbps,Ping_ms,Jitter_ms,Down_Loaded_Ping_ms,Up_Loaded_Ping_ms,Bufferbloat_Grade\n")
+        val df = java.text.SimpleDateFormat("yyyy-MM-dd HH:mm:ss", java.util.Locale.US)
+        _items.value.forEach { r ->
+            sb.append(r.time).append(",")
+            sb.append("\"").append(df.format(java.util.Date(r.time))).append("\",")
+            sb.append("\"").append(r.source.name).append("\",")
+            sb.append("\"").append(r.server.replace("\"", "\"\"")).append("\",")
+            sb.append("\"").append(r.isp.replace("\"", "\"\"")).append("\",")
+            sb.append("\"").append(r.network.name).append("\",")
+            sb.append(String.format(java.util.Locale.US, "%.2f", r.downloadMbps)).append(",")
+            sb.append(String.format(java.util.Locale.US, "%.2f", r.uploadMbps)).append(",")
+            sb.append(String.format(java.util.Locale.US, "%.1f", r.pingMs)).append(",")
+            sb.append(String.format(java.util.Locale.US, "%.1f", r.jitterMs)).append(",")
+            sb.append(r.downLoadedPingMs?.let { String.format(java.util.Locale.US, "%.1f", it) } ?: "").append(",")
+            sb.append(r.upLoadedPingMs?.let { String.format(java.util.Locale.US, "%.1f", it) } ?: "").append(",")
+            sb.append("\"").append(r.bufferbloatGrade ?: "").append("\"\n")
+        }
+        return sb.toString()
+    }
+
     private fun save(list: List<TestResult>) {
         _items.value = list
         val arr = JSONArray()
         list.forEach { r ->
-            arr.put(
-                JSONObject()
-                    .put("t", r.time).put("d", r.downloadMbps).put("u", r.uploadMbps)
-                    .put("p", r.pingMs).put("j", r.jitterMs).put("isp", r.isp)
-                    .put("srv", r.server).put("net", r.network.name).put("src", r.source.name)
-            )
+            val obj = JSONObject()
+                .put("t", r.time).put("d", r.downloadMbps).put("u", r.uploadMbps)
+                .put("p", r.pingMs).put("j", r.jitterMs).put("isp", r.isp)
+                .put("srv", r.server).put("net", r.network.name).put("src", r.source.name)
+            r.downLoadedPingMs?.let { obj.put("dlp", it) }
+            r.upLoadedPingMs?.let { obj.put("ulp", it) }
+            r.bufferbloatGrade?.let { obj.put("bbg", it) }
+            arr.put(obj)
         }
         prefs.edit().putString("items", arr.toString()).apply()
     }
@@ -121,12 +153,36 @@ class HistoryStore(context: Context) {
                 server = o.optString("srv"),
                 network = NetworkKind.entries.firstOrNull { it.name == o.optString("net") } ?: NetworkKind.OTHER,
                 source = TestSource.entries.firstOrNull { it.name == o.optString("src") } ?: TestSource.CLOUDFLARE,
+                downLoadedPingMs = if (o.has("dlp")) o.getDouble("dlp") else null,
+                upLoadedPingMs = if (o.has("ulp")) o.getDouble("ulp") else null,
+                bufferbloatGrade = if (o.has("bbg")) o.getString("bbg") else null,
             )
         }
     }.getOrDefault(emptyList())
 
     private companion object {
         const val MAX_ITEMS = 200
+    }
+}
+
+fun connectionDetails(context: Context): ConnectionDetails {
+    val net = currentNetwork(context)
+    if (net != NetworkKind.WIFI) return ConnectionDetails(net)
+    return try {
+        val wm = context.applicationContext.getSystemService(android.net.wifi.WifiManager::class.java)
+        val info = wm?.connectionInfo
+        val speed = info?.linkSpeed?.takeIf { it > 0 }
+        val freq = info?.frequency?.let { f ->
+            when {
+                f in 2400..2500 -> "2.4 GHz"
+                f in 4900..5900 -> "5 GHz"
+                f in 5925..7125 -> "6 GHz (Wi-Fi 6E/7)"
+                else -> "$f MHz"
+            }
+        }
+        ConnectionDetails(net, speed, freq)
+    } catch (_: Exception) {
+        ConnectionDetails(net)
     }
 }
 

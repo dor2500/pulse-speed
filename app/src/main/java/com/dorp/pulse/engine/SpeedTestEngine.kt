@@ -28,6 +28,22 @@ data class ServerInfo(
 
 data class PingResult(val pingMs: Double, val jitterMs: Double)
 
+data class TransferResult(val mbps: Double, val loadedPingMs: Double? = null)
+
+fun calculateBufferbloatGrade(baselinePingMs: Double, downLoadedPingMs: Double?, upLoadedPingMs: Double?): String {
+    val deltaDown = downLoadedPingMs?.let { max(0.0, it - baselinePingMs) } ?: 0.0
+    val deltaUp = upLoadedPingMs?.let { max(0.0, it - baselinePingMs) } ?: 0.0
+    val worstDelta = max(deltaDown, deltaUp)
+    return when {
+        worstDelta <= 5.0 -> "A+"
+        worstDelta <= 15.0 -> "A"
+        worstDelta <= 30.0 -> "B"
+        worstDelta <= 60.0 -> "C"
+        worstDelta <= 150.0 -> "D"
+        else -> "F"
+    }
+}
+
 /** Where a test sends its traffic. Every source boils down to these four things. */
 class Endpoints(
     val ping: String,
@@ -78,7 +94,7 @@ class SpeedTestEngine {
         ep: Endpoints,
         durationMs: Long,
         onSample: (mbps: Double, progress: Float) -> Unit,
-    ): Double = measureTransfer(durationMs, ep.downStreams, onSample) { stream, counter, deadline, conns ->
+    ): TransferResult = measureTransfer(durationMs, ep.downStreams, ep.ping, onSample) { stream, counter, deadline, conns ->
         val c = open(ep.download(stream))
         conns += c
         try {
@@ -105,7 +121,7 @@ class SpeedTestEngine {
         ep: Endpoints,
         durationMs: Long,
         onSample: (mbps: Double, progress: Float) -> Unit,
-    ): Double = measureTransfer(durationMs, ep.upStreams, onSample) { stream, counter, deadline, conns ->
+    ): TransferResult = measureTransfer(durationMs, ep.upStreams, ep.ping, onSample) { stream, counter, deadline, conns ->
         val c = open(ep.upload(stream), "POST")
         c.doOutput = true
         c.setFixedLengthStreamingMode(ep.uploadChunk)
@@ -136,9 +152,10 @@ class SpeedTestEngine {
     private suspend fun measureTransfer(
         durationMs: Long,
         streams: Int,
+        pingUrl: String? = null,
         onSample: (Double, Float) -> Unit,
         worker: (stream: Int, counter: AtomicLong, deadlineNs: Long, conns: MutableList<HttpURLConnection>) -> Unit,
-    ): Double = coroutineScope {
+    ): TransferResult = coroutineScope {
         val bytes = AtomicLong(0)
         val conns: MutableList<HttpURLConnection> = Collections.synchronizedList(mutableListOf())
         val start = System.nanoTime()
@@ -161,6 +178,20 @@ class SpeedTestEngine {
         }
 
         val warmupNs = min(2_000_000_000L, durationMs * 1_000_000 / 5)
+        val loadedPings = Collections.synchronizedList(mutableListOf<Double>())
+        val pingJob = if (pingUrl != null) {
+            launch(Dispatchers.IO) {
+                delay(warmupNs / 1_000_000 + 400)
+                while (isActive && System.nanoTime() < end - 400_000_000) {
+                    runCatching {
+                        val ms = singlePing(pingUrl)
+                        loadedPings += ms
+                    }
+                    delay(1200)
+                }
+            }
+        } else null
+
         var warmBytes = -1L
         var warmAt = start
         var lastBytes = 0L
@@ -184,6 +215,7 @@ class SpeedTestEngine {
             }
         } finally {
             // Runs on cancel too, so pressing Stop closes every socket right away.
+            pingJob?.cancel()
             synchronized(conns) { conns.toList() }.forEach { runCatching { it.disconnect() } }
             workers.forEach { it.cancel() }
         }
@@ -193,7 +225,12 @@ class SpeedTestEngine {
             warmBytes = 0
             warmAt = start
         }
-        max(0.0, mbps(lastBytes - warmBytes, lastAt - warmAt))
+        val speed = max(0.0, mbps(lastBytes - warmBytes, lastAt - warmAt))
+        val avgLoadedPing = if (loadedPings.isNotEmpty()) {
+            val sorted = loadedPings.sorted()
+            if (sorted.size % 2 == 1) sorted[sorted.size / 2] else (sorted[sorted.size / 2 - 1] + sorted[sorted.size / 2]) / 2.0
+        } else null
+        TransferResult(speed, avgLoadedPing)
     }
 
     private fun singlePing(url: String): Double {

@@ -51,6 +51,13 @@
     <string name="theme_system">System</string>
     <string name="theme_light">Light</string>
     <string name="theme_dark">Dark</string>
+    <string name="theme_oled">OLED Black</string>
+    <string name="loaded_latency">Loaded ping</string>
+    <string name="bufferbloat">Bufferbloat grade</string>
+    <string name="export_csv">Export CSV</string>
+    <string name="link_speed">Link speed</string>
+    <string name="wifi_band">Frequency</string>
+    <string name="copied">Copied to clipboard</string>
     <string name="settings_dynamic">Dynamic color</string>
     <string name="settings_dynamic_desc">Match colors to your wallpaper (Android 12+)</string>
     <string name="settings_test">Speed test</string>

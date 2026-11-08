@@ -1,0 +1,553 @@
+/* Pulse Speed Test - Material 3 Expressive Design */
+:root {
+  --primary: #006A6A;
+  --on-primary: #FFFFFF;
+  --primary-container: #9CF1F0;
+  --on-primary-container: #002020;
+  --secondary: #4A6363;
+  --secondary-container: #CCE8E7;
+  --on-secondary-container: #051F1F;
+  --tertiary: #4B607C;
+  --tertiary-container: #D3E4FF;
+  --on-tertiary-container: #041C35;
+  --bg: #F4FBFA;
+  --surface: #F4FBFA;
+  --surface-low: #EFF5F4;
+  --surface-container: #E9EFEE;
+  --surface-high: #E3E9E8;
+  --on-surface: #161D1D;
+  --on-surface-variant: #3F4948;
+  --outline: #6F7979;
+  --outline-variant: #BEC9C8;
+  --error: #BA1A1A;
+  --error-container: #FFDAD6;
+  --on-error-container: #410002;
+  --radius-sm: 12px;
+  --radius-md: 20px;
+  --radius-lg: 28px;
+  --radius-pill: 9999px;
+  --font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  --focus-ring: 0 0 0 4px rgba(0, 106, 106, 0.4);
+}
+
+[data-theme="dark"] {
+  --primary: #80D5D4;
+  --on-primary: #003737;
+  --primary-container: #004F4F;
+  --on-primary-container: #9CF1F0;
+  --secondary: #B0CCCB;
+  --secondary-container: #324B4B;
+  --on-secondary-container: #CCE8E7;
+  --tertiary: #B3C8E8;
+  --tertiary-container: #334863;
+  --on-tertiary-container: #D3E4FF;
+  --bg: #0E1514;
+  --surface: #0E1514;
+  --surface-low: #161D1D;
+  --surface-container: #1A2121;
+  --surface-high: #252B2B;
+  --on-surface: #DDE4E3;
+  --on-surface-variant: #BEC9C8;
+  --outline: #889392;
+  --outline-variant: #3F4948;
+  --focus-ring: 0 0 0 4px rgba(128, 213, 212, 0.45);
+}
+
+[data-theme="oled"] {
+  --primary: #80D5D4;
+  --on-primary: #003737;
+  --primary-container: #004F4F;
+  --on-primary-container: #9CF1F0;
+  --secondary: #B0CCCB;
+  --secondary-container: #1C2626;
+  --on-secondary-container: #CCE8E7;
+  --tertiary: #B3C8E8;
+  --tertiary-container: #223042;
+  --on-tertiary-container: #D3E4FF;
+  --bg: #000000;
+  --surface: #000000;
+  --surface-low: #090E0E;
+  --surface-container: #101616;
+  --surface-high: #192020;
+  --on-surface: #FFFFFF;
+  --on-surface-variant: #A4B2B1;
+  --outline: #6A7776;
+  --outline-variant: #283333;
+  --focus-ring: 0 0 0 4px rgba(128, 213, 212, 0.6);
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  -webkit-tap-highlight-color: transparent;
+}
+
+body {
+  font-family: var(--font-family);
+  background-color: var(--bg);
+  color: var(--on-surface);
+  line-height: 1.5;
+  user-select: none;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  transition: background-color 0.3s ease, color 0.3s ease;
+  overflow-x: hidden;
+}
+
+/* TV & Remote Focus styles */
+:focus-visible, .tv-focused {
+  outline: none;
+  box-shadow: var(--focus-ring) !important;
+  transform: scale(1.02);
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.container {
+  max-width: 640px;
+  width: 100%;
+  margin: 0 auto;
+  padding: 16px 20px 100px;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Header */
+.app-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.brand-title {
+  font-size: 28px;
+  font-weight: 700;
+  letter-spacing: -0.5px;
+  color: var(--primary);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.brand-badge {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  background: var(--primary-container);
+  color: var(--on-primary-container);
+  padding: 2px 8px;
+  border-radius: var(--radius-pill);
+}
+
+.network-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--surface-container);
+  color: var(--on-surface);
+  padding: 6px 14px;
+  border-radius: var(--radius-pill);
+  font-size: 13px;
+  font-weight: 600;
+}
+
+/* Source Picker */
+.source-picker {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  padding-bottom: 4px;
+  scrollbar-width: none;
+  margin-bottom: 6px;
+}
+.source-picker::-webkit-scrollbar { display: none; }
+
+.chip {
+  background: var(--surface-low);
+  color: var(--on-surface-variant);
+  border: 1px solid var(--outline-variant);
+  border-radius: var(--radius-pill);
+  padding: 6px 16px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.2s ease;
+}
+.chip.active {
+  background: var(--secondary-container);
+  color: var(--on-secondary-container);
+  border-color: transparent;
+}
+.source-desc {
+  font-size: 12px;
+  color: var(--on-surface-variant);
+  margin-bottom: 16px;
+  padding: 0 4px;
+}
+
+/* Metric Cards */
+.metrics-row {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+.metric-card {
+  background: var(--surface-container);
+  border-radius: var(--radius-lg);
+  padding: 16px 14px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  min-height: 140px;
+  transition: all 0.25s cubic-bezier(0.2, 0, 0, 1);
+  border: 1px solid transparent;
+}
+.metric-card.active {
+  background: var(--surface-high);
+  border-color: var(--primary);
+  transform: translateY(-3px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+}
+.metric-card .icon-box {
+  width: 36px;
+  height: 36px;
+  border-radius: var(--radius-sm);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 12px;
+}
+.metric-card.ping .icon-box { background: var(--secondary-container); color: var(--on-secondary-container); }
+.metric-card.download .icon-box { background: var(--primary-container); color: var(--on-primary-container); }
+.metric-card.upload .icon-box { background: var(--tertiary-container); color: var(--on-tertiary-container); }
+
+.metric-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--on-surface-variant);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+.metric-value {
+  font-size: 24px;
+  font-weight: 700;
+  letter-spacing: -0.5px;
+  margin: 4px 0 2px;
+}
+.metric-sub {
+  font-size: 11px;
+  color: var(--on-surface-variant);
+}
+
+/* Morphing Gauge Stage */
+.gauge-stage {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 1.1;
+  max-width: 380px;
+  margin: 0 auto 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.gauge-svg {
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+
+.petal {
+  transform-origin: 150px 150px;
+  transition: transform 0.4s ease, opacity 0.4s ease;
+  fill: var(--primary-container);
+  opacity: 0.25;
+}
+
+.gauge-running .petal {
+  animation: breathe 3s infinite ease-in-out;
+}
+@keyframes breathe {
+  0%, 100% { transform: scale(1) rotate(0deg); opacity: 0.25; }
+  50% { transform: scale(1.08) rotate(6deg); opacity: 0.42; }
+}
+
+.orbit-ring {
+  stroke-dasharray: 600;
+  stroke-dashoffset: 600;
+  transition: stroke-dashoffset 0.15s linear;
+}
+
+.gauge-center {
+  position: absolute;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+}
+.gauge-num {
+  font-size: 52px;
+  font-weight: 800;
+  letter-spacing: -1.5px;
+  line-height: 1;
+  color: var(--on-surface);
+}
+.gauge-unit {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--on-surface-variant);
+  margin-top: 4px;
+}
+.gauge-status {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--primary);
+  margin-top: 6px;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+}
+
+/* Action Button */
+.action-row {
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.btn-hero {
+  background: var(--primary);
+  color: var(--on-primary);
+  border: none;
+  border-radius: var(--radius-pill);
+  padding: 16px 48px;
+  font-size: 18px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  box-shadow: 0 4px 16px rgba(0, 106, 106, 0.3);
+  transition: all 0.2s cubic-bezier(0.2, 0, 0, 1);
+}
+.btn-hero:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 22px rgba(0, 106, 106, 0.4);
+}
+.btn-hero.btn-stop {
+  background: var(--error);
+  color: #FFFFFF;
+  box-shadow: 0 4px 16px rgba(186, 26, 26, 0.35);
+}
+
+.btn-secondary {
+  background: var(--surface-container);
+  color: var(--on-surface);
+  border: 1px solid var(--outline-variant);
+  border-radius: var(--radius-pill);
+  padding: 14px 24px;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  transition: all 0.2s ease;
+}
+
+/* Card Sections */
+.info-card {
+  background: var(--surface-low);
+  border-radius: var(--radius-lg);
+  padding: 18px 20px;
+  margin-bottom: 16px;
+  border: 1px solid var(--surface-high);
+}
+
+.info-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+.info-card-title {
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.info-row {
+  display: flex;
+  align-items: center;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--surface-high);
+}
+.info-row:last-child { border-bottom: none; }
+.info-row .info-label {
+  flex: 1;
+  font-size: 14px;
+  color: var(--on-surface-variant);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.info-row .info-val {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--on-surface);
+  text-align: right;
+  max-width: 60%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Bufferbloat Grade Badge */
+.grade-badge {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 20px;
+  font-weight: 800;
+}
+.grade-A, .grade-Ap { background: rgba(46, 125, 50, 0.2); color: #2E7D32; }
+.grade-B { background: rgba(56, 142, 60, 0.2); color: #388E3C; }
+.grade-C { background: rgba(245, 124, 0, 0.2); color: #F57C00; }
+.grade-D { background: rgba(230, 81, 0, 0.2); color: #E65100; }
+.grade-F { background: rgba(211, 47, 47, 0.2); color: #D32F2F; }
+
+/* Canvas Plot */
+.canvas-wrapper {
+  width: 100%;
+  height: 120px;
+  background: var(--surface-container);
+  border-radius: var(--radius-md);
+  margin: 8px 0;
+  overflow: hidden;
+}
+canvas {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+/* Floating Navigation Bar */
+.bottom-nav {
+  position: fixed;
+  bottom: 18px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--surface-high);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  padding: 6px 8px;
+  border-radius: var(--radius-pill);
+  display: flex;
+  gap: 6px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
+  border: 1px solid var(--outline-variant);
+  z-index: 100;
+}
+
+.nav-item {
+  background: transparent;
+  border: none;
+  color: var(--on-surface-variant);
+  padding: 8px 18px;
+  border-radius: var(--radius-pill);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transition: all 0.2s ease;
+}
+.nav-item.active {
+  background: var(--secondary-container);
+  color: var(--on-secondary-container);
+}
+
+/* History Screen */
+.history-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.history-card {
+  background: var(--surface-container);
+  border-radius: var(--radius-lg);
+  padding: 16px 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+/* Settings elements */
+.settings-group {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: 20px;
+}
+.settings-segmented {
+  display: flex;
+  background: var(--surface-container);
+  padding: 4px;
+  border-radius: var(--radius-pill);
+  gap: 4px;
+}
+.settings-tab {
+  flex: 1;
+  text-align: center;
+  padding: 8px 12px;
+  font-size: 13px;
+  font-weight: 600;
+  border-radius: var(--radius-pill);
+  border: none;
+  background: transparent;
+  color: var(--on-surface-variant);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+.settings-tab.active {
+  background: var(--primary);
+  color: var(--on-primary);
+}
+
+/* RTL Support */
+[dir="rtl"] {
+  direction: rtl;
+}
+[dir="rtl"] .info-row .info-val {
+  text-align: left;
+}
+
+/* TV Mode overrides */
+@media (min-width: 1200px) and (min-height: 800px) {
+  body {
+    font-size: 18px;
+  }
+  .container {
+    max-width: 860px;
+    padding-top: 36px;
+  }
+  .brand-title { font-size: 38px; }
+  .gauge-stage { max-width: 480px; }
+  .gauge-num { font-size: 72px; }
+  .btn-hero { font-size: 24px; padding: 20px 64px; }
+  .metric-value { font-size: 32px; }
+  .bottom-nav { padding: 10px 14px; bottom: 28px; }
+  .nav-item { font-size: 16px; padding: 12px 24px; }
+}
+

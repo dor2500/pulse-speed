@@ -74,6 +74,16 @@ private val DarkColors = darkColorScheme(
     surfaceContainerHighest = Color(0xFF2F3636),
 )
 
+private val OledColors = DarkColors.copy(
+    background = Color.Black,
+    surface = Color.Black,
+    surfaceContainerLowest = Color.Black,
+    surfaceContainerLow = Color(0xFF0A0F0E),
+    surfaceContainer = Color(0xFF101616),
+    surfaceContainerHigh = Color(0xFF181F1F),
+    surfaceContainerHighest = Color(0xFF202727),
+)
+
 private val BaseType = Typography()
 
 private val AppTypography = BaseType.copy(
@@ -98,7 +108,7 @@ private val AppShapes = Shapes(
 fun isDark(mode: ThemeMode): Boolean = when (mode) {
     ThemeMode.SYSTEM -> isSystemInDarkTheme()
     ThemeMode.LIGHT -> false
-    ThemeMode.DARK -> true
+    ThemeMode.DARK, ThemeMode.OLED -> true
 }
 
 @Composable
@@ -106,6 +116,7 @@ fun PulseTheme(mode: ThemeMode, dynamicColor: Boolean, content: @Composable () -
     val dark = isDark(mode)
     val context = LocalContext.current
     val scheme = when {
+        mode == ThemeMode.OLED -> OledColors
         dynamicColor && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S ->
             if (dark) dynamicDarkColorScheme(context) else dynamicLightColorScheme(context)
         dark -> DarkColors

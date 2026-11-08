@@ -27,6 +27,8 @@ import androidx.compose.material.icons.rounded.ArrowUpward
 import androidx.compose.material.icons.rounded.Check
 import androidx.compose.material.icons.rounded.Delete
 import androidx.compose.material.icons.rounded.DeleteSweep
+import androidx.compose.material.icons.rounded.Share
+import androidx.compose.material.icons.rounded.Speed
 import androidx.compose.material.icons.rounded.History
 import androidx.compose.material.icons.rounded.Place
 import androidx.compose.material.icons.rounded.SignalCellularAlt
@@ -80,6 +82,7 @@ fun HistoryScreen(
     unit: SpeedUnit,
     onDelete: (Long) -> Unit,
     onClear: () -> Unit,
+    onExportCsv: () -> Unit,
     contentPadding: PaddingValues,
 ) {
     var confirmClear by remember { mutableStateOf(false) }
@@ -124,6 +127,9 @@ fun HistoryScreen(
                     modifier = Modifier.weight(1f),
                 )
                 if (items.isNotEmpty()) {
+                    IconButton(onClick = onExportCsv) {
+                        Icon(Icons.Rounded.Share, stringResource(R.string.export_csv))
+                    }
                     IconButton(onClick = { confirmClear = true }) {
                         Icon(Icons.Rounded.DeleteSweep, stringResource(R.string.clear_history))
                     }
@@ -365,6 +371,9 @@ private fun HistoryItem(r: TestResult, unit: SpeedUnit) {
             ) {
                 DataLabel(Icons.Rounded.ArrowUpward, "${formatSpeed(r.uploadMbps, unit)} ${unit.label}", scheme.tertiaryContainer, scheme.onTertiaryContainer)
                 DataLabel(Icons.Rounded.Timer, "${formatMs(r.pingMs)} ${stringResource(R.string.unit_ms)}", scheme.secondaryContainer, scheme.onSecondaryContainer)
+                r.bufferbloatGrade?.let { bbg ->
+                    DataLabel(Icons.Rounded.Speed, "${stringResource(R.string.bufferbloat)} $bbg", scheme.primaryContainer, scheme.onPrimaryContainer)
+                }
                 val place = r.server.ifBlank { r.isp }
                 if (place.isNotBlank()) {
                     DataLabel(Icons.Rounded.Place, place, scheme.surfaceContainerHighest, scheme.onSurfaceVariant)

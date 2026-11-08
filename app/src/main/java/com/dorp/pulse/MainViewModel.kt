@@ -6,10 +6,12 @@ import android.net.Network
 import android.net.NetworkCapabilities
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
+import com.dorp.pulse.data.ConnectionDetails
 import com.dorp.pulse.data.HistoryStore
 import com.dorp.pulse.data.NetworkKind
 import com.dorp.pulse.data.SettingsStore
 import com.dorp.pulse.data.TestResult
+import com.dorp.pulse.data.connectionDetails
 import com.dorp.pulse.data.currentNetwork
 import com.dorp.pulse.engine.ServerInfo
 import com.dorp.pulse.engine.SpeedTestEngine
@@ -48,10 +50,14 @@ data class TestUiState(
     val jitterMs: Double? = null,
     val downloadMbps: Double? = null,
     val uploadMbps: Double? = null,
+    val downLoadedPingMs: Double? = null,
+    val upLoadedPingMs: Double? = null,
+    val bufferbloatGrade: String? = null,
     val downSamples: List<Float> = emptyList(),
     val upSamples: List<Float> = emptyList(),
     val server: ServerInfo? = null,
     val network: NetworkKind = NetworkKind.OTHER,
+    val connection: ConnectionDetails? = null,
     val error: TestError? = null,
     val source: TestSource = TestSource.CLOUDFLARE,
 ) {
@@ -126,8 +132,8 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
     }
 
     private fun refreshNetwork() {
-        val kind = currentNetwork(getApplication())
-        _state.update { if (it.running) it else it.copy(network = kind) }
+        val details = connectionDetails(getApplication())
+        _state.update { if (it.running) it else it.copy(network = details.network, connection = details) }
     }
 
     override fun onCleared() {
@@ -143,9 +149,10 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
 
     fun start() {
         if (job?.isActive == true) return
-        val network = currentNetwork(getApplication())
+        val details = connectionDetails(getApplication())
+        val network = details.network
         if (network == NetworkKind.NONE) {
-            _state.value = TestUiState(phase = Phase.ERROR, network = network, error = TestError.OFFLINE)
+            _state.value = TestUiState(phase = Phase.ERROR, network = network, connection = details, error = TestError.OFFLINE)
             return
         }
         val settings = settingsStore.settings.value
@@ -153,7 +160,7 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
         val source = settings.source
         val id = ++runId
         job = viewModelScope.launch {
-            _state.value = TestUiState(phase = Phase.CONNECTING, network = network, source = source)
+            _state.value = TestUiState(phase = Phase.CONNECTING, network = network, connection = details, source = source)
             try {
                 val test = engine.prepare(source)
                 val ep = test.endpoints
@@ -169,25 +176,48 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
                 val down = engine.measureDownload(ep, durationMs) { mbps, p ->
                     updateRun(id) { it.copy(liveMbps = mbps, progress = p, downSamples = it.downSamples + mbps.toFloat()) }
                 }
-                updateRun(id) { it.copy(downloadMbps = down, liveMbps = 0.0, phase = Phase.UPLOAD, progress = 0f) }
+                updateRun(id) {
+                    it.copy(
+                        downloadMbps = down.mbps,
+                        downLoadedPingMs = down.loadedPingMs,
+                        liveMbps = 0.0,
+                        phase = Phase.UPLOAD,
+                        progress = 0f,
+                    )
+                }
 
                 val up = engine.measureUpload(ep, durationMs) { mbps, p ->
                     updateRun(id) { it.copy(liveMbps = mbps, progress = p, upSamples = it.upSamples + mbps.toFloat()) }
                 }
                 if (id != runId) return@launch
-                updateRun(id) { it.copy(uploadMbps = up, liveMbps = down, phase = Phase.DONE, progress = 1f) }
+
+                val grade = com.dorp.pulse.engine.calculateBufferbloatGrade(ping.pingMs, down.loadedPingMs, up.loadedPingMs)
+
+                updateRun(id) {
+                    it.copy(
+                        uploadMbps = up.mbps,
+                        upLoadedPingMs = up.loadedPingMs,
+                        bufferbloatGrade = grade,
+                        liveMbps = down.mbps,
+                        phase = Phase.DONE,
+                        progress = 1f,
+                    )
+                }
 
                 historyStore.add(
                     TestResult(
                         time = System.currentTimeMillis(),
-                        downloadMbps = down,
-                        uploadMbps = up,
+                        downloadMbps = down.mbps,
+                        uploadMbps = up.mbps,
                         pingMs = ping.pingMs,
                         jitterMs = ping.jitterMs,
                         isp = test.info.isp,
                         server = test.info.serverLabel,
                         network = network,
                         source = source,
+                        downLoadedPingMs = down.loadedPingMs,
+                        upLoadedPingMs = up.loadedPingMs,
+                        bufferbloatGrade = grade,
                     )
                 )
             } catch (e: CancellationException) {

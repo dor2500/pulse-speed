@@ -43,6 +43,7 @@ import androidx.compose.material.icons.rounded.Stop
 import androidx.compose.material.icons.rounded.Dns
 import androidx.compose.material.icons.rounded.ErrorOutline
 import androidx.compose.material.icons.rounded.Language
+import androidx.compose.material.icons.rounded.Speed
 import androidx.compose.material.icons.rounded.Refresh
 import androidx.compose.material.icons.rounded.Router
 import androidx.compose.material.icons.rounded.SettingsEthernet
@@ -157,6 +158,9 @@ fun TestScreen(
         }
         AnimatedVisibility(state.downSamples.isNotEmpty(), enter = fadeIn() + expandVertically(), exit = fadeOut() + shrinkVertically()) {
             GraphCard(state, unit)
+        }
+        AnimatedVisibility(state.phase == Phase.DONE && state.bufferbloatGrade != null, enter = fadeIn() + expandVertically(), exit = fadeOut() + shrinkVertically()) {
+            BufferbloatCard(state)
         }
         ConnectionCard(state)
         Spacer(Modifier.height(16.dp))
@@ -483,6 +487,84 @@ private fun SparkLine(samples: List<Float>, peak: Float, color: Color, modifier:
 }
 
 @Composable
+private fun BufferbloatCard(state: TestUiState) {
+    val grade = state.bufferbloatGrade ?: return
+    val scheme = MaterialTheme.colorScheme
+    val gradeColor = when (grade) {
+        "A+", "A" -> Color(0xFF2E7D32)
+        "B" -> Color(0xFF388E3C)
+        "C" -> Color(0xFFF57C00)
+        "D" -> Color(0xFFE65100)
+        else -> Color(0xFFD32F2F)
+    }
+    Surface(
+        Modifier.fillMaxWidth().padding(vertical = 8.dp),
+        shape = RoundedCornerShape(CornerLarge),
+        color = scheme.surfaceContainerLow,
+    ) {
+        Column(Modifier.padding(20.dp)) {
+            Row(
+                Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween,
+            ) {
+                Column {
+                    Text(stringResource(R.string.bufferbloat), style = MaterialTheme.typography.titleMedium)
+                    Text(
+                        stringResource(R.string.loaded_latency),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = scheme.onSurfaceVariant,
+                    )
+                }
+                Box(
+                    Modifier
+                        .size(44.dp)
+                        .clip(CircleShape)
+                        .background(gradeColor.copy(alpha = 0.2f)),
+                    contentAlignment = Alignment.Center,
+                ) {
+                    Text(
+                        grade,
+                        style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold),
+                        color = gradeColor,
+                    )
+                }
+            }
+            Spacer(Modifier.height(14.dp))
+            Row(
+                Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceEvenly,
+            ) {
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    Text(
+                        "↓ ${stringResource(R.string.phase_download)}",
+                        style = MaterialTheme.typography.labelSmall,
+                        color = scheme.onSurfaceVariant,
+                    )
+                    Spacer(Modifier.height(2.dp))
+                    Text(
+                        state.downLoadedPingMs?.let { "${formatMs(it)} ms" } ?: "—",
+                        style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.SemiBold),
+                    )
+                }
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    Text(
+                        "↑ ${stringResource(R.string.phase_upload)}",
+                        style = MaterialTheme.typography.labelSmall,
+                        color = scheme.onSurfaceVariant,
+                    )
+                    Spacer(Modifier.height(2.dp))
+                    Text(
+                        state.upLoadedPingMs?.let { "${formatMs(it)} ms" } ?: "—",
+                        style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.SemiBold),
+                    )
+                }
+            }
+        }
+    }
+}
+
+@Composable
 private fun ConnectionCard(state: TestUiState) {
     val scheme = MaterialTheme.colorScheme
     val server = state.server
@@ -501,6 +583,12 @@ private fun ConnectionCard(state: TestUiState) {
             InfoRow(Icons.Rounded.Dns, stringResource(R.string.server), server?.serverLabel?.ifBlank { null } ?: "—")
             InfoRow(Icons.Rounded.Language, stringResource(R.string.ip_address), server?.ip?.ifBlank { null } ?: "—")
             InfoRow(state.network.icon(), stringResource(R.string.network), state.network.label())
+            state.connection?.wifiLinkSpeedMbps?.let {
+                InfoRow(Icons.Rounded.Speed, stringResource(R.string.link_speed), "$it Mbps")
+            }
+            state.connection?.wifiFrequencyBand?.let {
+                InfoRow(Icons.Rounded.Wifi, stringResource(R.string.wifi_band), it)
+            }
             InfoRow(
                 Icons.AutoMirrored.Rounded.ArrowForward,
                 stringResource(R.string.protocol),

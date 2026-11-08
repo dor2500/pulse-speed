@@ -118,6 +118,7 @@ fun SettingsScreen(
                     ThemeMode.SYSTEM to stringResource(R.string.theme_system),
                     ThemeMode.LIGHT to stringResource(R.string.theme_light),
                     ThemeMode.DARK to stringResource(R.string.theme_dark),
+                    ThemeMode.OLED to stringResource(R.string.theme_oled),
                 ),
                 selected = settings.theme,
                 onSelect = { v -> onChange { it.copy(theme = v) } },

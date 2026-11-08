@@ -1,6 +1,7 @@
 package com.dorp.pulse
 
 import android.content.Context
+import android.content.Intent
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.SystemBarStyle
@@ -140,7 +141,22 @@ private fun AppRoot(vm: MainViewModel) {
                     onCancel = vm::cancel,
                     contentPadding = padding,
                 )
-                1 -> HistoryScreen(history, settings.unit, vm.historyStore::delete, vm.historyStore::clear, padding)
+                1 -> HistoryScreen(
+                    items = history,
+                    unit = settings.unit,
+                    onDelete = vm.historyStore::delete,
+                    onClear = vm.historyStore::clear,
+                    onExportCsv = {
+                        val csv = vm.historyStore.exportCsv()
+                        val intent = Intent(Intent.ACTION_SEND).apply {
+                            type = "text/csv"
+                            putExtra(Intent.EXTRA_SUBJECT, "Pulse Speed Test History")
+                            putExtra(Intent.EXTRA_TEXT, csv)
+                        }
+                        activity?.startActivity(Intent.createChooser(intent, "Export History"))
+                    },
+                    contentPadding = padding,
+                )
                 else -> SettingsScreen(
                     settings = settings,
                     onChange = { transform ->

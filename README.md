@@ -1,7 +1,7 @@
-# Pulse: internet speed test for Android
+# Pulse: internet speed test for Android, Windows, Mac & LG webOS TV
 
-A fast, modern speed test app built with **Jetpack Compose** and **Material 3 / Material You**.
-It measures ping, jitter, download and upload against your choice of Cloudflare, Ookla (speedtest.net), FAST (Netflix) or LibreSpeed servers.
+A fast, modern speed test app built with **Jetpack Compose / Material 3 Expressive** and multiplatform client engines.
+It measures ping, jitter, download, upload and **bufferbloat / loaded latency** against your choice of Cloudflare, Ookla (speedtest.net), FAST (Netflix) or LibreSpeed servers.
 
 <p align="center">
   <img src="docs/screenshots/start.png" width="22%" />
@@ -10,21 +10,24 @@ It measures ping, jitter, download and upload against your choice of Cloudflare,
   <img src="docs/screenshots/history.png" width="22%" />
 </p>
 
-## Download
+## Downloads
 
-[![Download APK](https://img.shields.io/github/v/release/dor2500/pulse-speed?label=Download%20APK&style=for-the-badge&color=006A6A)](https://github.com/dor2500/pulse-speed/releases/latest)
-
-Grab the latest signed APK from the [Releases page](https://github.com/dor2500/pulse-speed/releases/latest).
-It needs Android 8.0 or newer.
+| Platform | Package | Description |
+|:---|:---|:---|
+| **Android** | [`Pulse-v1.5.0.apk`](https://github.com/dor2500/pulse-speed/releases/latest) | Android 8.0+ APK with Material You & Jetpack Compose |
+| **LG webOS TV** | [`Pulse-v1.5.0-webos.ipk`](https://github.com/dor2500/pulse-speed/releases/latest) | LG Smart TV `.ipk` package with full TV remote & Magic Remote support |
+| **Windows** | [`Pulse.exe`](https://github.com/dor2500/pulse-speed/releases/latest) | Standalone portable executable (no install required, 90 KB) |
+| **macOS** | [`Pulse-v1.5.0-mac.zip`](https://github.com/dor2500/pulse-speed/releases/latest) | macOS App bundle |
+| **Web** | [`Pulse-v1.5.0-web.zip`](https://github.com/dor2500/pulse-speed/releases/latest) | Standalone HTML5 web client |
 
 <div dir="rtl">
 
 ### בעברית
 
-**Pulse** היא אפליקציית בדיקת מהירות אינטרנט לאנדרואיד בעיצוב Material You מודרני.
-היא מודדת פינג, ג׳יטר, הורדה והעלאה, שומרת היסטוריה של הבדיקות ותומכת בעברית מלאה.
+**Pulse** היא אפליקציית בדיקת מהירות אינטרנט מהירה ומודרנית בעיצוב Material You ל-Android, למחשבי Windows ו-Mac, ולטלוויזיות חכמות של LG (מערכת webOS).
+היא מודדת פינג, ג׳יטר, הורדה, העלאה, **מדד Bufferbloat (פינג בעומס)**, אבחון רשת Wi-Fi, שמירה וייצוא היסטוריה ל-CSV ותמיכה מלאה בעברית.
 
-**התקנה:** הורידו את קובץ ה-APK מ[דף הגרסאות](https://github.com/dor2500/pulse-speed/releases/latest), פתחו אותו בטלפון ואשרו התקנה ממקור לא ידוע אם תתבקשו. נדרש אנדרואיד 8.0 ומעלה.
+**הורדות:** הורידו את הגרסה המתאימה לכם (קובץ APK לאנדרואיד, IPK לטלוויזיות LG, קובץ EXE לחלונות או ZIP למק) מ[דף הגרסאות](https://github.com/dor2500/pulse-speed/releases/latest).
 
 </div>
 

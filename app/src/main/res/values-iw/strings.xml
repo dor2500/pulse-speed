@@ -53,6 +53,13 @@
     <string name="theme_system">מערכת</string>
     <string name="theme_light">בהיר</string>
     <string name="theme_dark">כהה</string>
+    <string name="theme_oled">שחור מוחלט (OLED)</string>
+    <string name="loaded_latency">פינג בעומס</string>
+    <string name="bufferbloat">ציון עומס (Bufferbloat)</string>
+    <string name="export_csv">ייצוא ל-CSV</string>
+    <string name="link_speed">מהירות חיבור Wi-Fi</string>
+    <string name="wifi_band">תדר Wi-Fi</string>
+    <string name="copied">הועתק ללוח</string>
     <string name="settings_dynamic">צבע דינמי</string>
     <string name="settings_dynamic_desc">התאמת הצבעים לטפט שלכם (אנדרואיד 12 ומעלה)</string>
     <string name="settings_test">בדיקת מהירות</string>
