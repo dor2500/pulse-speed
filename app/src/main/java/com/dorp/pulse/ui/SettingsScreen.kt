@@ -167,7 +167,7 @@ fun SettingsScreen(
                 colors = itemColors,
             )
             ListItem(
-                headlineContent = { Text("Cloudflare") },
+                headlineContent = { Text(stringResource(R.string.about_engine_title)) },
                 supportingContent = { Text(stringResource(R.string.about_engine)) },
                 leadingContent = { Icon(Icons.Rounded.Public, null) },
                 colors = itemColors,

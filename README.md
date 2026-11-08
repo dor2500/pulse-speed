@@ -1,7 +1,7 @@
 # Pulse: internet speed test for Android
 
 A fast, modern speed test app built with **Jetpack Compose** and **Material 3 / Material You**.
-It measures ping, jitter, download and upload against the Cloudflare speed test network.
+It measures ping, jitter, download and upload against your choice of Cloudflare, Ookla (speedtest.net), FAST (Netflix) or LibreSpeed servers.
 
 <p align="center">
   <img src="docs/screenshots/start.png" width="22%" />
@@ -34,6 +34,8 @@ It needs Android 8.0 or newer.
 - **Material 3 Expressive design**: a compact floating pill navigation bar, asymmetric cards and pill buttons
 - **Morphing gauge**: an organic four-petal shape that breathes, swells and spins faster with live speed, carries progress on an organic ring, and morphs into a capsule with the final result
 - **Expanding cards**: the card for the running phase springs larger and lifts while its test runs
+- **Four test networks**: Cloudflare, Ookla's speedtest.net servers, Netflix's FAST servers and LibreSpeed community servers, picked per test
+- **Stop any time**: a Stop button ends the test instantly and discards the partial run
 - **Ping and jitter**, measured over a warm connection with server processing time subtracted
 - **Multi-stream download and upload**; the TCP warm-up window is discarded so slow start doesn't drag the result down
 - **Speed-over-time graph** for download and upload
@@ -48,9 +50,12 @@ It needs Android 8.0 or newer.
 
 | Phase    | Method |
 |----------|--------|
-| Ping     | 12 small requests over a keep-alive connection; median round trip minus Cloudflare's reported `Server-Timing`. Jitter is the mean difference between consecutive samples. |
-| Download | 6 parallel streams from `speed.cloudflare.com/__down` for the selected length. The first ~20% is warm-up and isn't counted. |
-| Upload   | 4 parallel streams posting to `speed.cloudflare.com/__up`, measured the same way. |
+| Server   | Cloudflare uses its nearest data center. Ookla probes the nearest speedtest.net servers and uses the fastest. FAST asks Netflix for the closest Open Connect servers. LibreSpeed probes the community server list and uses the fastest responder. |
+| Ping     | 12 small requests over a keep-alive connection; the median round trip (minus Cloudflare's reported `Server-Timing`). Jitter is the mean difference between consecutive samples. |
+| Download | 6 parallel streams for the selected length. The first ~20% is warm-up and isn't counted. |
+| Upload   | 4 parallel streams, measured the same way. |
+
+Ookla and FAST are reached through the same public endpoints their own web apps call. They aren't official APIs, so they may change without notice.
 
 ## Build
 
@@ -73,4 +78,4 @@ Kotlin · Jetpack Compose · Material 3 · Coroutines / StateFlow · `HttpURLCon
 
 ---
 
-Pulse is an independent project and isn't affiliated with Cloudflare or Ookla.
+Pulse is an independent project and isn't affiliated with Cloudflare, Ookla, Netflix or LibreSpeed.

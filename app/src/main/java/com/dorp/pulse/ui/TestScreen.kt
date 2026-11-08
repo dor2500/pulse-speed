@@ -39,7 +39,7 @@ import androidx.compose.material.icons.automirrored.rounded.ArrowForward
 import androidx.compose.material.icons.rounded.ArrowDownward
 import androidx.compose.material.icons.rounded.ArrowUpward
 import androidx.compose.material.icons.rounded.Business
-import androidx.compose.material.icons.rounded.Close
+import androidx.compose.material.icons.rounded.Stop
 import androidx.compose.material.icons.rounded.Dns
 import androidx.compose.material.icons.rounded.ErrorOutline
 import androidx.compose.material.icons.rounded.Language
@@ -59,6 +59,12 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ElevatedCard
+import androidx.compose.material3.FilledTonalButton
+import androidx.compose.material3.FilterChip
+import androidx.compose.material3.FilterChipDefaults
+import androidx.compose.material.icons.rounded.Check
+import androidx.compose.foundation.horizontalScroll
+import com.dorp.pulse.engine.TestSource
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LinearProgressIndicator
@@ -106,6 +112,8 @@ private val CornerSmall = 12.dp
 fun TestScreen(
     state: TestUiState,
     unit: SpeedUnit,
+    source: TestSource,
+    onSourceChange: (TestSource) -> Unit,
     onStart: () -> Unit,
     onCancel: () -> Unit,
     contentPadding: PaddingValues,
@@ -123,7 +131,9 @@ fun TestScreen(
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
         Header(state)
-        Spacer(Modifier.height(16.dp))
+        Spacer(Modifier.height(12.dp))
+        SourcePicker(source, enabled = !state.running, onSourceChange)
+        Spacer(Modifier.height(12.dp))
         MetricsRow(state, unit)
         Spacer(Modifier.height(8.dp))
 
@@ -310,10 +320,21 @@ private fun ActionRow(state: TestUiState, unit: SpeedUnit, onStart: () -> Unit, 
                 gapSize = 4.dp,
             )
             Spacer(Modifier.height(8.dp))
-            TextButton(onClick = onCancel, shape = CircleShape) {
-                Icon(Icons.Rounded.Close, null, Modifier.size(18.dp))
-                Spacer(Modifier.width(6.dp))
-                Text(stringResource(R.string.cancel))
+            Spacer(Modifier.height(4.dp))
+            // Prominent stop: closes every connection at once and discards the partial run.
+            FilledTonalButton(
+                onClick = onCancel,
+                shape = CircleShape,
+                colors = ButtonDefaults.filledTonalButtonColors(
+                    containerColor = MaterialTheme.colorScheme.errorContainer,
+                    contentColor = MaterialTheme.colorScheme.onErrorContainer,
+                ),
+                modifier = Modifier.height(52.dp),
+                contentPadding = PaddingValues(horizontal = 28.dp),
+            ) {
+                Icon(Icons.Rounded.Stop, null, Modifier.size(22.dp))
+                Spacer(Modifier.width(8.dp))
+                Text(stringResource(R.string.stop_test), style = MaterialTheme.typography.titleMedium)
             }
         } else if (state.phase == Phase.DONE) {
             val shareText = stringResource(
@@ -520,4 +541,44 @@ private fun InfoRow(icon: ImageVector, label: String, value: String, last: Boole
             color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f),
         )
     }
+}
+
+@Composable
+private fun SourcePicker(source: TestSource, enabled: Boolean, onChange: (TestSource) -> Unit) {
+    Column(Modifier.fillMaxWidth()) {
+        Row(
+            Modifier
+                .fillMaxWidth()
+                .horizontalScroll(rememberScrollState())
+                .padding(horizontal = 4.dp),
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+        ) {
+            TestSource.entries.forEach { s ->
+                val selected = s == source
+                FilterChip(
+                    selected = selected,
+                    enabled = enabled,
+                    onClick = { onChange(s) },
+                    label = { Text(s.title) },
+                    shape = CircleShape,
+                    leadingIcon = if (selected) {
+                        { Icon(Icons.Rounded.Check, null, Modifier.size(FilterChipDefaults.IconSize)) }
+                    } else null,
+                )
+            }
+        }
+        Text(
+            stringResource(source.description()),
+            style = MaterialTheme.typography.labelMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier.padding(start = 8.dp, end = 8.dp, top = 2.dp),
+        )
+    }
+}
+
+fun TestSource.description(): Int = when (this) {
+    TestSource.CLOUDFLARE -> R.string.src_cloudflare_desc
+    TestSource.OOKLA -> R.string.src_ookla_desc
+    TestSource.FAST -> R.string.src_fast_desc
+    TestSource.LIBRESPEED -> R.string.src_libre_desc
 }

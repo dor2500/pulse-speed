@@ -61,7 +61,7 @@
     <string name="len_long">Thorough</string>
     <string name="settings_about">About</string>
     <string name="about_version">Version</string>
-    <string name="about_engine">Measured against the Cloudflare speed test network</string>
+    <string name="about_engine">Cloudflare, Ookla (speedtest.net), FAST (Netflix) and LibreSpeed</string>
     <string name="about_source">Source code on GitHub</string>
     <string name="settings_language">Language</string>
     <string name="lang_system">System</string>
@@ -79,5 +79,11 @@
     <string name="update_btn_install">Download &amp; install</string>
     <string name="update_btn_open_installer">Install update</string>
     <string name="update_whats_new">What\'s new</string>
+    <string name="stop_test">Stop test</string>
+    <string name="src_cloudflare_desc">Cloudflare\'s global network, nearest data center</string>
+    <string name="src_ookla_desc">Ookla\'s speedtest.net servers, fastest nearby server</string>
+    <string name="src_fast_desc">Netflix servers, the same ones FAST.com uses</string>
+    <string name="src_libre_desc">Open-source LibreSpeed community servers, fastest responder</string>
+    <string name="about_engine_title">Test servers</string>
     <string name="share_text">Pulse speed test\n↓ Download %1$s\n↑ Upload %2$s\nPing %3$s ms · Jitter %4$s ms</string>
 </resources>

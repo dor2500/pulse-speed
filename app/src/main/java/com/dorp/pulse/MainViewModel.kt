@@ -13,6 +13,7 @@ import com.dorp.pulse.data.TestResult
 import com.dorp.pulse.data.currentNetwork
 import com.dorp.pulse.engine.ServerInfo
 import com.dorp.pulse.engine.SpeedTestEngine
+import com.dorp.pulse.engine.TestSource
 import com.dorp.pulse.update.ReleaseInfo
 import com.dorp.pulse.update.Updater
 import java.io.File
@@ -52,6 +53,7 @@ data class TestUiState(
     val server: ServerInfo? = null,
     val network: NetworkKind = NetworkKind.OTHER,
     val error: TestError? = null,
+    val source: TestSource = TestSource.CLOUDFLARE,
 ) {
     val running get() = phase in setOf(Phase.CONNECTING, Phase.PING, Phase.DOWNLOAD, Phase.UPLOAD)
 }
@@ -132,6 +134,13 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
         runCatching { connectivity?.unregisterNetworkCallback(networkCallback) }
     }
 
+    /** Bumped on every start/stop so callbacks from a stopped run can't touch the screen. */
+    private var runId = 0
+
+    private inline fun updateRun(id: Int, crossinline transform: (TestUiState) -> TestUiState) {
+        _state.update { if (id == runId) transform(it) else it }
+    }
+
     fun start() {
         if (job?.isActive == true) return
         val network = currentNetwork(getApplication())
@@ -139,31 +148,35 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
             _state.value = TestUiState(phase = Phase.ERROR, network = network, error = TestError.OFFLINE)
             return
         }
-        val durationMs = settingsStore.settings.value.length.seconds * 1000L
+        val settings = settingsStore.settings.value
+        val durationMs = settings.length.seconds * 1000L
+        val source = settings.source
+        val id = ++runId
         job = viewModelScope.launch {
-            _state.value = TestUiState(phase = Phase.CONNECTING, network = network, server = _state.value.server)
+            _state.value = TestUiState(phase = Phase.CONNECTING, network = network, source = source)
             try {
-                val info = runCatching { engine.fetchServerInfo() }.getOrNull()
-                _state.update { it.copy(server = info ?: it.server, phase = Phase.PING) }
+                val test = engine.prepare(source)
+                val ep = test.endpoints
+                updateRun(id) { it.copy(server = test.info, phase = Phase.PING) }
 
-                val ping = engine.measurePing { ms, p ->
-                    _state.update { it.copy(pingMs = ms, progress = p) }
+                val ping = engine.measurePing(ep) { ms, p ->
+                    updateRun(id) { it.copy(pingMs = ms, progress = p) }
                 }
-                _state.update {
+                updateRun(id) {
                     it.copy(pingMs = ping.pingMs, jitterMs = ping.jitterMs, phase = Phase.DOWNLOAD, progress = 0f)
                 }
 
-                val down = engine.measureDownload(durationMs) { mbps, p ->
-                    _state.update { it.copy(liveMbps = mbps, progress = p, downSamples = it.downSamples + mbps.toFloat()) }
+                val down = engine.measureDownload(ep, durationMs) { mbps, p ->
+                    updateRun(id) { it.copy(liveMbps = mbps, progress = p, downSamples = it.downSamples + mbps.toFloat()) }
                 }
-                _state.update { it.copy(downloadMbps = down, liveMbps = 0.0, phase = Phase.UPLOAD, progress = 0f) }
+                updateRun(id) { it.copy(downloadMbps = down, liveMbps = 0.0, phase = Phase.UPLOAD, progress = 0f) }
 
-                val up = engine.measureUpload(durationMs) { mbps, p ->
-                    _state.update { it.copy(liveMbps = mbps, progress = p, upSamples = it.upSamples + mbps.toFloat()) }
+                val up = engine.measureUpload(ep, durationMs) { mbps, p ->
+                    updateRun(id) { it.copy(liveMbps = mbps, progress = p, upSamples = it.upSamples + mbps.toFloat()) }
                 }
-                _state.update { it.copy(uploadMbps = up, liveMbps = down, phase = Phase.DONE, progress = 1f) }
+                if (id != runId) return@launch
+                updateRun(id) { it.copy(uploadMbps = up, liveMbps = down, phase = Phase.DONE, progress = 1f) }
 
-                val s = _state.value
                 historyStore.add(
                     TestResult(
                         time = System.currentTimeMillis(),
@@ -171,25 +184,28 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
                         uploadMbps = up,
                         pingMs = ping.pingMs,
                         jitterMs = ping.jitterMs,
-                        isp = s.server?.isp.orEmpty(),
-                        server = s.server?.serverLabel.orEmpty(),
+                        isp = test.info.isp,
+                        server = test.info.serverLabel,
                         network = network,
+                        source = source,
                     )
                 )
             } catch (e: CancellationException) {
                 throw e
             } catch (e: Exception) {
                 val offline = currentNetwork(getApplication()) == NetworkKind.NONE
-                _state.update {
+                updateRun(id) {
                     it.copy(phase = Phase.ERROR, error = if (offline) TestError.OFFLINE else TestError.SERVER, liveMbps = 0.0)
                 }
             }
         }
     }
 
+    /** Stops a running test immediately: sockets close and nothing from it is saved. */
     fun cancel() {
+        runId++
         job?.cancel()
         job = null
-        _state.update { TestUiState(network = currentNetwork(getApplication()), server = it.server) }
+        _state.update { TestUiState(network = currentNetwork(getApplication()), source = it.source) }
     }
 }

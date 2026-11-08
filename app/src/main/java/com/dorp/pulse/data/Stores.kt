@@ -7,6 +7,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
+import com.dorp.pulse.engine.TestSource
 import org.json.JSONArray
 import org.json.JSONObject
 
@@ -23,6 +24,7 @@ data class AppSettings(
     val unit: SpeedUnit = SpeedUnit.MBPS,
     val length: TestLength = TestLength.STANDARD,
     val language: AppLanguage = AppLanguage.SYSTEM,
+    val source: TestSource = TestSource.CLOUDFLARE,
 )
 
 private fun storedLanguage(prefs: android.content.SharedPreferences): AppLanguage =
@@ -53,6 +55,7 @@ class SettingsStore(context: Context) {
             .putString("unit", s.unit.name)
             .putString("length", s.length.name)
             .putString("lang", s.language.name)
+            .putString("source", s.source.name)
             .commit() // committed synchronously: a language change recreates the activity right after
     }
 
@@ -62,6 +65,7 @@ class SettingsStore(context: Context) {
         unit = enumOr(prefs.getString("unit", null), SpeedUnit.MBPS),
         length = enumOr(prefs.getString("length", null), TestLength.STANDARD),
         language = storedLanguage(prefs),
+        source = enumOr(prefs.getString("source", null), TestSource.CLOUDFLARE),
     )
 
     private inline fun <reified T : Enum<T>> enumOr(name: String?, fallback: T): T =
@@ -77,6 +81,7 @@ data class TestResult(
     val isp: String,
     val server: String,
     val network: NetworkKind,
+    val source: TestSource = TestSource.CLOUDFLARE,
 )
 
 class HistoryStore(context: Context) {
@@ -96,7 +101,7 @@ class HistoryStore(context: Context) {
                 JSONObject()
                     .put("t", r.time).put("d", r.downloadMbps).put("u", r.uploadMbps)
                     .put("p", r.pingMs).put("j", r.jitterMs).put("isp", r.isp)
-                    .put("srv", r.server).put("net", r.network.name)
+                    .put("srv", r.server).put("net", r.network.name).put("src", r.source.name)
             )
         }
         prefs.edit().putString("items", arr.toString()).apply()
@@ -115,6 +120,7 @@ class HistoryStore(context: Context) {
                 isp = o.optString("isp"),
                 server = o.optString("srv"),
                 network = NetworkKind.entries.firstOrNull { it.name == o.optString("net") } ?: NetworkKind.OTHER,
+                source = TestSource.entries.firstOrNull { it.name == o.optString("src") } ?: TestSource.CLOUDFLARE,
             )
         }
     }.getOrDefault(emptyList())

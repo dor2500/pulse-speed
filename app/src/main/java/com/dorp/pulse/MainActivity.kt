@@ -131,7 +131,15 @@ private fun AppRoot(vm: MainViewModel) {
             label = "tab",
         ) { t ->
             when (t) {
-                0 -> TestScreen(state, settings.unit, vm::start, vm::cancel, padding)
+                0 -> TestScreen(
+                    state = state,
+                    unit = settings.unit,
+                    source = settings.source,
+                    onSourceChange = { s -> vm.settingsStore.update { it.copy(source = s) } },
+                    onStart = vm::start,
+                    onCancel = vm::cancel,
+                    contentPadding = padding,
+                )
                 1 -> HistoryScreen(history, settings.unit, vm.historyStore::delete, vm.historyStore::clear, padding)
                 else -> SettingsScreen(
                     settings = settings,

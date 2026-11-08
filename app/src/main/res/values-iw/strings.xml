@@ -63,7 +63,7 @@
     <string name="len_long">יסודית</string>
     <string name="settings_about">אודות</string>
     <string name="about_version">גרסה</string>
-    <string name="about_engine">המדידה מתבצעת מול רשת בדיקות המהירות של Cloudflare</string>
+    <string name="about_engine">Cloudflare,‏ Ookla (speedtest.net),‏ FAST (Netflix) ו-LibreSpeed</string>
     <string name="about_source">קוד המקור ב-GitHub</string>
     <string name="settings_language">שפה</string>
     <string name="lang_system">מערכת</string>
@@ -81,5 +81,11 @@
     <string name="update_btn_install">הורדה והתקנה</string>
     <string name="update_btn_open_installer">התקנת העדכון</string>
     <string name="update_whats_new">מה חדש</string>
+    <string name="stop_test">עצירת הבדיקה</string>
+    <string name="src_cloudflare_desc">הרשת הגלובלית של Cloudflare, מרכז הנתונים הקרוב</string>
+    <string name="src_ookla_desc">השרתים של speedtest.net (Ookla), השרת הקרוב והמהיר</string>
+    <string name="src_fast_desc">השרתים של Netflix, אותם שרתים ש-FAST.com משתמש בהם</string>
+    <string name="src_libre_desc">שרתי הקהילה של LibreSpeed (קוד פתוח), זה שעונה הכי מהר</string>
+    <string name="about_engine_title">שרתי בדיקה</string>
     <string name="share_text">בדיקת מהירות Pulse\n↓ הורדה %1$s\n↑ העלאה %2$s\nפינג %3$s ms · ג׳יטר %4$s ms</string>
 </resources>
