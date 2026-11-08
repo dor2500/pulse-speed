@@ -1,6 +1,6 @@
 {
   "id": "community.pulse.speedtest",
-  "version": "1.5.1",
+  "version": "1.5.2",
   "name": "Pulse Speed Test",
   "description": "Test ping, jitter, download, upload and bufferbloat directly inside Stremio",
   "logo": "https://raw.githubusercontent.com/dor2500/pulse-speed/main/multiplatform/src/icon-256.png",

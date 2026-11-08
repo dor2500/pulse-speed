@@ -13,7 +13,7 @@ import time
 import urllib.request
 import urllib.error
 
-VERSION = "1.5.1"
+VERSION = "1.5.2"
 
 # ANSI Colors
 CYAN = "\033[96m"

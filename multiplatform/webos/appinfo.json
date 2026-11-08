@@ -1,6 +1,6 @@
 {
   "id": "com.dorp.pulse",
-  "version": "1.5.1",
+  "version": "1.5.2",
   "vendor": "Pulse",
   "type": "web",
   "main": "index.html",

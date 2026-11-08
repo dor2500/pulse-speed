@@ -12,19 +12,23 @@ android {
         applicationId = "com.dorp.pulse"
         minSdk = 26
         targetSdk = 36
-        versionCode = 7
-        versionName = "1.5.1"
+        versionCode = 8
+        versionName = "1.5.2"
     }
 
-    // The release key comes from the environment, so it never enters the repository.
-    val keystorePath = System.getenv("PULSE_KEYSTORE_PATH")
+    // The release key comes from the environment, or user's local keystore
+    val defaultKeystore = File(System.getProperty("user.home"), ".pulse-speed/release.jks")
+    val defaultPasswordFile = File(System.getProperty("user.home"), ".pulse-speed/release-password.txt")
+    val keystorePath = System.getenv("PULSE_KEYSTORE_PATH") ?: if (defaultKeystore.exists()) defaultKeystore.absolutePath else null
+    val keystorePassword = System.getenv("PULSE_KEYSTORE_PASSWORD") ?: if (defaultPasswordFile.exists()) defaultPasswordFile.readText().trim() else null
+
     signingConfigs {
-        if (keystorePath != null) {
+        if (keystorePath != null && keystorePassword != null) {
             create("release") {
                 storeFile = file(keystorePath)
-                storePassword = System.getenv("PULSE_KEYSTORE_PASSWORD")
+                storePassword = keystorePassword
                 keyAlias = System.getenv("PULSE_KEY_ALIAS") ?: "pulse"
-                keyPassword = System.getenv("PULSE_KEYSTORE_PASSWORD")
+                keyPassword = keystorePassword
             }
         }
     }
@@ -33,7 +37,7 @@ android {
             isMinifyEnabled = true
             isShrinkResources = true
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"))
-            signingConfig = if (keystorePath != null) signingConfigs.getByName("release")
+            signingConfig = if (signingConfigs.findByName("release") != null) signingConfigs.getByName("release")
             else signingConfigs.getByName("debug")
         }
     }

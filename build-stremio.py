@@ -6,8 +6,8 @@ Creates Pulse-v1.5.0-stremio-addon.zip ready to run locally or deploy to Beamup 
 import os
 import zipfile
 
-def build_stremio_addon(stremio_dir, src_dir, dist_dir, version="1.5.1"):
-    output_path = os.path.join(dist_dir, f"Pulse-v1.5.1-stremio-addon.zip")
+def build_stremio_addon(stremio_dir, src_dir, dist_dir, version="1.5.2"):
+    output_path = os.path.join(dist_dir, f"Pulse-v{version}-stremio-addon.zip")
     print(f"Building Stremio Addon package: {output_path}")
 
     with zipfile.ZipFile(output_path, 'w', zipfile.ZIP_DEFLATED) as zf:

@@ -21,7 +21,7 @@ def create_ar_header(filename, size, mtime=None, mode=0o100644, uid=0, gid=0):
     size_str = str(size).ljust(10)[:10]
     return (name + mtime_str + uid_str + gid_str + mode_str + size_str + '`\n').encode('ascii')
 
-def build_linux_packages(src_dir, dist_dir, version="1.5.1"):
+def build_linux_packages(src_dir, dist_dir, version="1.5.2"):
     # 1. Debian Package (.deb)
     deb_path = os.path.join(dist_dir, f"pulse_{version}_all.deb")
     print(f"Building Debian (.deb) package: {deb_path}")

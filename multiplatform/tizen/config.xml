@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<widget xmlns="http://www.w3.org/ns/widgets" xmlns:tizen="http://tizen.org/ns/widgets" id="http://dorp.pulse/app" version="1.5.1" viewmodes="maximized">
+<widget xmlns="http://www.w3.org/ns/widgets" xmlns:tizen="http://tizen.org/ns/widgets" id="http://dorp.pulse/app" version="1.5.2" viewmodes="maximized">
     <tizen:application id="dorp.pulse" package="dorp" exec="index.html" screen-orientation="landscape" context-menu="enable" background-support="disable" encryption="disable" install-location="auto" restart-on-reboot="true"/>
     <name>Pulse Speed</name>
     <icon src="icon.png"/>

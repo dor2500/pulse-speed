@@ -24,8 +24,8 @@ def build_webos_ipk():
     subprocess.run([ares_cmd, src_dir, "-o", dist_dir, "--no-minify"], check=True)
 
     # Standardize output file name
-    official_ipk = os.path.join(dist_dir, "com.dorp.pulse_1.5.1_all.ipk")
-    target_ipk = os.path.join(dist_dir, "Pulse-v1.5.1-webos.ipk")
+    official_ipk = os.path.join(dist_dir, "com.dorp.pulse_1.5.2_all.ipk")
+    target_ipk = os.path.join(dist_dir, "Pulse-v1.5.2-webos.ipk")
     if os.path.exists(official_ipk):
         shutil.copy2(official_ipk, target_ipk)
         print(f"Successfully generated: {target_ipk} ({os.path.getsize(target_ipk)/1024:.1f} KB)")

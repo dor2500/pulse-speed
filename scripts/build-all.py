@@ -2,22 +2,24 @@
 """
 Pulse Speed Master Multiplatform Build Script
 Builds all deliverables for all platforms:
-1. Android & Android TV / Fire TV APK (Pulse-v1.5.0.apk)
-2. LG webOS Smart TV (Pulse-v1.5.0-webos.ipk)
-3. Samsung Smart TV Tizen (Pulse-v1.5.0-tizen.wgt)
-4. Stremio Addon (Pulse-v1.5.0-stremio-addon.zip)
-5. Kodi Media Center Addon (Pulse-v1.5.0-kodi-addon.zip)
-6. Linux Debian Package (pulse_1.5.0_all.deb)
-7. Linux Tarball (Pulse-v1.5.0-linux.tar.gz)
-8. Windows Desktop Executable (Pulse.exe & Pulse-v1.5.0-windows.zip)
-9. macOS Desktop App (Pulse-v1.5.0-mac.zip)
+1. Android & Android TV / Fire TV APK (Pulse-v1.5.2.apk)
+2. LG webOS Smart TV (Pulse-v1.5.2-webos.ipk)
+3. Samsung Smart TV Tizen (Pulse-v1.5.2-tizen.wgt)
+4. Stremio Addon (Pulse-v1.5.2-stremio-addon.zip)
+5. Kodi Media Center Addon (Pulse-v1.5.2-kodi-addon.zip)
+6. Linux Debian Package (pulse_1.5.2_all.deb)
+7. Linux Tarball (Pulse-v1.5.2-linux.tar.gz)
+8. Windows Desktop Executable (Pulse.exe & Pulse-v1.5.2-windows.zip)
+9. macOS Desktop App (Pulse-v1.5.2-mac.zip)
 10. Universal CLI (pulse-cli.py)
-11. Standalone Web Package (Pulse-v1.5.0-web.zip)
+11. Standalone Web Package (Pulse-v1.5.2-web.zip)
 """
 import os
 import shutil
 import subprocess
 import zipfile
+
+VERSION = "1.5.2"
 
 def main():
     root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -25,46 +27,48 @@ def main():
     os.makedirs(dist, exist_ok=True)
 
     print("=====================================================")
-    print("      Pulse Speed Universal Multiplatform Build      ")
+    print(f"      Pulse Speed Universal Multiplatform Build v{VERSION}      ")
     print("=====================================================\n")
 
-    # 1. Android APK
-    apk_src = os.path.join(root, "app", "build", "outputs", "apk", "debug", "app-debug.apk")
-    apk_dest = os.path.join(dist, "Pulse-v1.5.1.apk")
+    # 1. Android APK - Prefer official signed release build
+    apk_release = os.path.join(root, "app", "build", "outputs", "apk", "release", "app-release.apk")
+    apk_debug = os.path.join(root, "app", "build", "outputs", "apk", "debug", "app-debug.apk")
+    apk_src = apk_release if os.path.exists(apk_release) else apk_debug
+    apk_dest = os.path.join(dist, f"Pulse-v{VERSION}.apk")
     if os.path.exists(apk_src):
         shutil.copy2(apk_src, apk_dest)
-        print(f"[1/11] Android & Android TV APK: {apk_dest} ({os.path.getsize(apk_dest)/1024/1024:.2f} MB)")
+        print(f"[1/11] Android & Android TV APK ({'RELEASE SIGNED' if apk_src == apk_release else 'DEBUG'}): {apk_dest} ({os.path.getsize(apk_dest)/1024/1024:.2f} MB)")
 
     # 2. LG webOS IPK
     subprocess.run(["python", os.path.join(root, "build-ipk.py")], check=True)
-    ipk_dest = os.path.join(dist, "Pulse-v1.5.1-webos.ipk")
+    ipk_dest = os.path.join(dist, f"Pulse-v{VERSION}-webos.ipk")
     print(f"[2/11] LG webOS IPK: {ipk_dest} ({os.path.getsize(ipk_dest)/1024:.1f} KB)")
 
     # 3. Samsung Smart TV Tizen WGT
     subprocess.run(["python", os.path.join(root, "build-tizen.py")], check=True)
-    tizen_dest = os.path.join(dist, "Pulse-v1.5.1-tizen.wgt")
+    tizen_dest = os.path.join(dist, f"Pulse-v{VERSION}-tizen.wgt")
     print(f"[3/11] Samsung Tizen TV: {tizen_dest} ({os.path.getsize(tizen_dest)/1024:.1f} KB)")
 
     # 4. Stremio Addon
     subprocess.run(["python", os.path.join(root, "build-stremio.py")], check=True)
-    stremio_dest = os.path.join(dist, "Pulse-v1.5.1-stremio-addon.zip")
+    stremio_dest = os.path.join(dist, f"Pulse-v{VERSION}-stremio-addon.zip")
     print(f"[4/11] Stremio Addon: {stremio_dest} ({os.path.getsize(stremio_dest)/1024:.1f} KB)")
 
     # 5. Kodi Media Center Addon
     subprocess.run(["python", os.path.join(root, "build-kodi.py")], check=True)
-    kodi_dest = os.path.join(dist, "Pulse-v1.5.1-kodi-addon.zip")
+    kodi_dest = os.path.join(dist, f"Pulse-v{VERSION}-kodi-addon.zip")
     print(f"[5/11] Kodi Addon: {kodi_dest} ({os.path.getsize(kodi_dest)/1024:.1f} KB)")
 
     # 6 & 7. Linux Debian (.deb) and tar.gz
     subprocess.run(["python", os.path.join(root, "build-linux.py")], check=True)
-    deb_dest = os.path.join(dist, "pulse_1.5.1_all.deb")
-    targz_dest = os.path.join(dist, "Pulse-v1.5.1-linux.tar.gz")
+    deb_dest = os.path.join(dist, f"pulse_{VERSION}_all.deb")
+    targz_dest = os.path.join(dist, f"Pulse-v{VERSION}-linux.tar.gz")
     print(f"[6/11] Linux Debian (.deb): {deb_dest} ({os.path.getsize(deb_dest)/1024:.1f} KB)")
     print(f"[7/11] Linux Tarball (.tar.gz): {targz_dest} ({os.path.getsize(targz_dest)/1024:.1f} KB)")
 
     # 8. Windows Desktop EXE
     win_exe = os.path.join(dist, "Pulse.exe")
-    win_zip = os.path.join(dist, "Pulse-v1.5.1-windows.zip")
+    win_zip = os.path.join(dist, f"Pulse-v{VERSION}-windows.zip")
     if os.path.exists(win_exe):
         with zipfile.ZipFile(win_zip, 'w', zipfile.ZIP_DEFLATED) as zf:
             zf.write(win_exe, arcname="Pulse.exe")
@@ -72,7 +76,7 @@ def main():
 
     # 9. macOS Desktop App
     subprocess.run(["python", os.path.join(root, "build-mac.py")], check=True)
-    mac_dest = os.path.join(dist, "Pulse-v1.5.1-mac.zip")
+    mac_dest = os.path.join(dist, f"Pulse-v{VERSION}-mac.zip")
     print(f"[9/11] macOS App: {mac_dest} ({os.path.getsize(mac_dest)/1024:.1f} KB)")
 
     # 10. Universal CLI Tool
@@ -83,7 +87,7 @@ def main():
 
     # 11. Standalone Web Package
     src_dir = os.path.join(root, "multiplatform", "src")
-    web_zip = os.path.join(dist, "Pulse-v1.5.1-web.zip")
+    web_zip = os.path.join(dist, f"Pulse-v{VERSION}-web.zip")
     with zipfile.ZipFile(web_zip, 'w', zipfile.ZIP_DEFLATED) as zf:
         for f in os.listdir(src_dir):
             full_f = os.path.join(src_dir, f)

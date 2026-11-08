@@ -7,7 +7,7 @@ import os
 import shutil
 import zipfile
 
-def build_mac_app(src_dir, dist_dir, version="1.5.1"):
+def build_mac_app(src_dir, dist_dir, version="1.5.2"):
     app_name = "Pulse.app"
     app_dir = os.path.join(dist_dir, app_name)
     contents_dir = os.path.join(app_dir, "Contents")
@@ -71,7 +71,7 @@ open "$DIR/index.html"
         shutil.copy2(icon_src, os.path.join(resources_dir, "icon.png"))
 
     # 4. Zip the .app for macOS distribution
-    zip_path = os.path.join(dist_dir, f"Pulse-v1.5.1-mac.zip")
+    zip_path = os.path.join(dist_dir, f"Pulse-v{version}-mac.zip")
     with zipfile.ZipFile(zip_path, 'w', zipfile.ZIP_DEFLATED) as zipf:
         for root, dirs, files in os.walk(app_dir):
             for file in files:

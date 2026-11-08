@@ -7,8 +7,8 @@ import os
 import shutil
 import zipfile
 
-def build_kodi_addon(kodi_dir, src_dir, dist_dir, version="1.5.1"):
-    output_path = os.path.join(dist_dir, f"Pulse-v1.5.1-kodi-addon.zip")
+def build_kodi_addon(kodi_dir, src_dir, dist_dir, version="1.5.2"):
+    output_path = os.path.join(dist_dir, f"Pulse-v{version}-kodi-addon.zip")
     print(f"Building Kodi Addon package: {output_path}")
 
     addon_folder = "plugin.program.pulsespeed"
