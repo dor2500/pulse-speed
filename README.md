@@ -12,8 +12,21 @@ It measures ping, jitter, download and upload against the Cloudflare speed test 
 
 ## Download
 
+[![Download APK](https://img.shields.io/github/v/release/dor2500/pulse-speed?label=Download%20APK&style=for-the-badge&color=006A6A)](https://github.com/dor2500/pulse-speed/releases/latest)
+
 Grab the latest signed APK from the [Releases page](https://github.com/dor2500/pulse-speed/releases/latest).
 It needs Android 8.0 or newer.
+
+<div dir="rtl">
+
+### בעברית
+
+**Pulse** היא אפליקציית בדיקת מהירות אינטרנט לאנדרואיד בעיצוב Material You מודרני.
+היא מודדת פינג, ג׳יטר, הורדה והעלאה, שומרת היסטוריה של הבדיקות ותומכת בעברית מלאה.
+
+**התקנה:** הורידו את קובץ ה-APK מ[דף הגרסאות](https://github.com/dor2500/pulse-speed/releases/latest), פתחו אותו בטלפון ואשרו התקנה ממקור לא ידוע אם תתבקשו. נדרש אנדרואיד 8.0 ומעלה.
+
+</div>
 
 ## Features
 
@@ -50,6 +63,10 @@ For a signed release, set `PULSE_KEYSTORE_PATH`, `PULSE_KEYSTORE_PASSWORD` and `
 ## Tech
 
 Kotlin · Jetpack Compose · Material 3 · Coroutines / StateFlow · `HttpURLConnection` (no third-party networking libraries) · R8-minified, about 1 MB APK.
+
+## License
+
+[MIT](LICENSE)
 
 ---
 
