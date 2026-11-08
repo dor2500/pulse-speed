@@ -34,6 +34,9 @@
     <string name="error_generic">Couldn\'t reach the test server. Check your connection and try again.</string>
     <string name="history_empty_title">No tests yet</string>
     <string name="history_empty_body">Run a speed test and your results will show up here.</string>
+    <string name="filter_all">All</string>
+    <string name="history_empty_filter_title">Nothing here yet</string>
+    <string name="history_empty_filter_body">No tests on this network type yet.</string>
     <string name="clear_history">Clear history</string>
     <string name="clear_history_confirm">Delete all saved results?</string>
     <string name="delete">Delete</string>

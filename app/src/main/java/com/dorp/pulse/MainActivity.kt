@@ -7,8 +7,14 @@ import androidx.activity.SystemBarStyle
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.animation.AnimatedContent
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.animateColorAsState
-import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.spring
 import androidx.compose.foundation.background
@@ -147,8 +153,9 @@ private fun AppRoot(vm: MainViewModel) {
 private class NavSpec(val selectedIcon: ImageVector, val icon: ImageVector, val label: String, val badge: Boolean = false)
 
 /**
- * A detached, floating pill navigation bar (16dp from the screen edges). The active
- * destination shows its icon and label side by side inside a horizontal pill indicator.
+ * A compact floating pill navigation bar that hugs its contents (about 216dp wide,
+ * 60dp tall), centred, floating 20dp above the system gesture bar. The selected
+ * destination gets a small tonal pill behind its icon.
  */
 @Composable
 private fun FloatingNavBar(selected: Int, items: List<NavSpec>, onSelect: (Int) -> Unit) {
@@ -156,24 +163,26 @@ private fun FloatingNavBar(selected: Int, items: List<NavSpec>, onSelect: (Int) 
         Modifier
             .fillMaxWidth()
             .navigationBarsPadding()
-            .padding(16.dp),
+            .padding(start = 16.dp, end = 16.dp, top = 12.dp, bottom = 20.dp),
+        contentAlignment = Alignment.Center,
     ) {
         Surface(
             shape = CircleShape,
-            color = MaterialTheme.colorScheme.surfaceContainer,
+            color = MaterialTheme.colorScheme.surfaceContainerHigh,
             tonalElevation = 3.dp,
-            shadowElevation = 10.dp,
-            modifier = Modifier.fillMaxWidth(),
+            shadowElevation = 8.dp,
+            modifier = Modifier.widthIn(max = 260.dp),
         ) {
             Row(
                 Modifier
-                    .padding(8.dp)
-                    .height(56.dp)
+                    .height(60.dp)
+                    .padding(horizontal = 8.dp)
                     .selectableGroup(),
                 verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(4.dp),
             ) {
                 items.forEachIndexed { i, item ->
-                    NavPill(item, i == selected, Modifier.weight(if (i == selected) 1.7f else 1f)) { onSelect(i) }
+                    NavPill(item, i == selected) { onSelect(i) }
                 }
             }
         }
@@ -181,39 +190,35 @@ private fun FloatingNavBar(selected: Int, items: List<NavSpec>, onSelect: (Int) 
 }
 
 @Composable
-private fun NavPill(item: NavSpec, selected: Boolean, modifier: Modifier, onClick: () -> Unit) {
+private fun NavPill(item: NavSpec, selected: Boolean, onClick: () -> Unit) {
     val scheme = MaterialTheme.colorScheme
-    val indicator by animateColorAsState(if (selected) scheme.secondaryContainer else Color.Transparent, label = "ind")
+    val bouncy = spring<Float>(dampingRatio = Spring.DampingRatioMediumBouncy, stiffness = Spring.StiffnessMedium)
+    val reveal by animateFloatAsState(if (selected) 1f else 0f, bouncy, label = "reveal")
     val content by animateColorAsState(
         if (selected) scheme.onSecondaryContainer else scheme.onSurfaceVariant,
         label = "content",
     )
     Box(
-        modifier
-            .fillMaxHeight()
+        Modifier
+            .size(width = 64.dp, height = 48.dp)
             .clip(CircleShape)
-            .selectable(selected = selected, role = Role.Tab, onClick = onClick),
+            .selectable(selected = selected, role = Role.Tab, onClick = onClick)
+            .semantics { contentDescription = item.label },
         contentAlignment = Alignment.Center,
     ) {
-        Row(
+        // Small tonal pill that grows out from the icon when selected.
+        Box(
             Modifier
+                .size(width = 56.dp, height = 36.dp)
+                .graphicsLayer {
+                    scaleX = 0.4f + 0.6f * reveal
+                    alpha = reveal.coerceIn(0f, 1f)
+                }
                 .clip(CircleShape)
-                .background(indicator)
-                .animateContentSize(spring(dampingRatio = Spring.DampingRatioLowBouncy, stiffness = Spring.StiffnessMediumLow))
-                .padding(horizontal = 16.dp, vertical = 10.dp),
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            BadgedBox(badge = { if (item.badge) Badge() }) {
-                Icon(
-                    if (selected) item.selectedIcon else item.icon,
-                    contentDescription = if (selected) null else item.label,
-                    tint = content,
-                )
-            }
-            if (selected) {
-                Spacer(Modifier.width(8.dp))
-                Text(item.label, style = MaterialTheme.typography.labelLarge, color = content, maxLines = 1)
-            }
+                .background(scheme.secondaryContainer),
+        )
+        BadgedBox(badge = { if (item.badge) Badge() }) {
+            Icon(if (selected) item.selectedIcon else item.icon, contentDescription = null, tint = content)
         }
     }
 }

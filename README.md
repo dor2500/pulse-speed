@@ -7,7 +7,7 @@ It measures ping, jitter, download and upload against the Cloudflare speed test 
   <img src="docs/screenshots/start.png" width="22%" />
   <img src="docs/screenshots/testing.png" width="22%" />
   <img src="docs/screenshots/result.png" width="22%" />
-  <img src="docs/screenshots/hebrew.png" width="22%" />
+  <img src="docs/screenshots/history.png" width="22%" />
 </p>
 
 ## Download
@@ -31,13 +31,13 @@ It needs Android 8.0 or newer.
 ## Features
 
 - **Material You**: colors follow your wallpaper on Android 12+, plus light, dark and system themes
-- **Material 3 Expressive design**: a floating pill navigation bar, asymmetric cards and pill buttons
+- **Material 3 Expressive design**: a compact floating pill navigation bar, asymmetric cards and pill buttons
 - **Morphing gauge**: an organic four-petal shape that breathes, swells and spins faster with live speed, carries progress on an organic ring, and morphs into a capsule with the final result
 - **Expanding cards**: the card for the running phase springs larger and lifts while its test runs
 - **Ping and jitter**, measured over a warm connection with server processing time subtracted
 - **Multi-stream download and upload**; the TCP warm-up window is discarded so slow start doesn't drag the result down
 - **Speed-over-time graph** for download and upload
-- **History** with averages and bests; swipe a result to delete it
+- **History** with a trend sparkline, averages and bests, Wi-Fi/Cellular filter chips; swipe a result to delete it
 - **Connection details**: provider, server location, IP, network type and HTTP protocol
 - **Share** a result as text
 - Units in **Mbps or MB/s**, and three test lengths (quick, standard, thorough)

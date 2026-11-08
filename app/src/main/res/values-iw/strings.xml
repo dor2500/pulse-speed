@@ -34,6 +34,9 @@
     <string name="error_generic">לא הצלחנו להגיע לשרת הבדיקה. בדקו את החיבור ונסו שוב.</string>
     <string name="history_empty_title">עוד אין בדיקות</string>
     <string name="history_empty_body">הריצו בדיקת מהירות והתוצאות יופיעו כאן.</string>
+    <string name="filter_all">הכול</string>
+    <string name="history_empty_filter_title">אין כאן עדיין כלום</string>
+    <string name="history_empty_filter_body">עוד אין בדיקות בסוג הרשת הזה.</string>
     <string name="clear_history">ניקוי היסטוריה</string>
     <string name="clear_history_confirm">למחוק את כל התוצאות השמורות?</string>
     <string name="delete">מחיקה</string>
