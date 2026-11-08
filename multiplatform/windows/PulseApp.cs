@@ -26,7 +26,6 @@ namespace PulseSpeed
 
             string url = string.Format("http://127.0.0.1:{0}/index.html", port);
             string browserPath = FindChromiumBrowser();
-            Process browserProc = null;
 
             if (!string.IsNullOrEmpty(browserPath))
             {
@@ -40,44 +39,38 @@ namespace PulseSpeed
 
                 try
                 {
-                    browserProc = Process.Start(psi);
+                    Process.Start(psi);
                 }
-                catch { browserProc = null; }
+                catch
+                {
+                    // Fallback to default browser
+                    try { Process.Start(new ProcessStartInfo(url) { UseShellExecute = true }); } catch { }
+                }
             }
-
-            if (browserProc == null)
+            else
             {
                 // Fallback to default browser
-                try
-                {
-                    Process.Start(new ProcessStartInfo(url) { UseShellExecute = true });
-                }
-                catch { }
+                try { Process.Start(new ProcessStartInfo(url) { UseShellExecute = true }); } catch { }
             }
 
-            // Monitor heartbeat loop: keep server alive until window is closed
+            // Monitor heartbeat: keep server alive as long as Pulse window is open
             DateTime startTime = DateTime.UtcNow;
             while (true)
             {
                 Thread.Sleep(1000);
 
-                if (browserProc != null && browserProc.HasExited)
-                {
-                    break;
-                }
-
-                // If heartbeat was received, shut down when browser closes tab/window (no heartbeats for 5s)
                 if (hasReceivedFirstHeartbeat)
                 {
-                    if ((DateTime.UtcNow - lastHeartbeat).TotalSeconds > 5)
+                    // Browser was open; close server 8 seconds after the window is closed
+                    if ((DateTime.UtcNow - lastHeartbeat).TotalSeconds > 8)
                     {
                         break;
                     }
                 }
                 else
                 {
-                    // If no heartbeat received within 30 seconds of launch, assume failed or closed
-                    if ((DateTime.UtcNow - startTime).TotalSeconds > 30)
+                    // Keep waiting at least 60 seconds for initial connection
+                    if ((DateTime.UtcNow - startTime).TotalSeconds > 60)
                     {
                         break;
                     }
@@ -159,6 +152,7 @@ namespace PulseSpeed
                 hasReceivedFirstHeartbeat = true;
                 byte[] ok = Encoding.UTF8.GetBytes("OK");
                 res.ContentType = "text/plain";
+                res.Headers.Add("Access-Control-Allow-Origin", "*");
                 res.OutputStream.Write(ok, 0, ok.Length);
                 res.Close();
                 return;
@@ -172,7 +166,7 @@ namespace PulseSpeed
             foreach (var name in asm.GetManifestResourceNames())
             {
                 if (name.EndsWith("." + path, StringComparison.OrdinalIgnoreCase) ||
-                    name.EndsWith(path, StringComparison.OrdinalIgnoreCase))
+                    name.Equals(path, StringComparison.OrdinalIgnoreCase))
                 {
                     resName = name;
                     break;
@@ -208,15 +202,7 @@ namespace PulseSpeed
                 return;
             }
 
-            // Inject heartbeat script into HTML
-            if (path.EndsWith(".html", StringComparison.OrdinalIgnoreCase))
-            {
-                mime = "text/html; charset=utf-8";
-                string html = Encoding.UTF8.GetString(buffer);
-                string heartbeatScript = "<script>setInterval(function(){fetch('/heartbeat').catch(function(){});}, 2000);</script></body>";
-                html = html.Replace("</body>", heartbeatScript);
-                buffer = Encoding.UTF8.GetBytes(html);
-            }
+            if (path.EndsWith(".html", StringComparison.OrdinalIgnoreCase)) mime = "text/html; charset=utf-8";
             else if (path.EndsWith(".css", StringComparison.OrdinalIgnoreCase)) mime = "text/css; charset=utf-8";
             else if (path.EndsWith(".js", StringComparison.OrdinalIgnoreCase)) mime = "application/javascript; charset=utf-8";
             else if (path.EndsWith(".png", StringComparison.OrdinalIgnoreCase)) mime = "image/png";

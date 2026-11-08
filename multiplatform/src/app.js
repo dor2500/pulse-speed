@@ -638,7 +638,7 @@ function renderTestView() {
     <header class="app-header">
       <div class="brand-title">
         ${t('app_name')}
-        <span class="brand-badge">Multiplatform v1.5.0</span>
+        <span class="brand-badge">Multiplatform v1.5.1</span>
       </div>
       <div class="network-chip">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M12 4C7.31 4 3.07 5.9 0 8.98L12 21 24 8.98C20.93 5.9 16.69 4 12 4z"/></svg>

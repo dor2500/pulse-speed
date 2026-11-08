@@ -27,6 +27,11 @@
   </nav>
 
   <script src="app.js"></script>
+  <script>
+    setInterval(function() {
+      fetch('/heartbeat').catch(function() {});
+    }, 2000);
+  </script>
 </body>
 </html>
 

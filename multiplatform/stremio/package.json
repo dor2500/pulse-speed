@@ -1,6 +1,6 @@
 {
   "name": "pulse-speed-stremio-addon",
-  "version": "1.5.0",
+  "version": "1.5.1",
   "description": "Pulse Speed Test Community Addon for Stremio",
   "main": "server.js",
   "scripts": {

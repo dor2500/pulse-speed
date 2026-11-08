@@ -7,8 +7,8 @@ import os
 import shutil
 import zipfile
 
-def build_tizen_wgt(src_dir, tizen_dir, dist_dir, version="1.5.0"):
-    output_path = os.path.join(dist_dir, f"Pulse-v1.5.0-tizen.wgt")
+def build_tizen_wgt(src_dir, tizen_dir, dist_dir, version="1.5.1"):
+    output_path = os.path.join(dist_dir, f"Pulse-v1.5.1-tizen.wgt")
     print(f"Building Samsung Smart TV (Tizen) package: {output_path}")
 
     with zipfile.ZipFile(output_path, 'w', zipfile.ZIP_DEFLATED) as zf:
