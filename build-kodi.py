@@ -32,3 +32,4 @@ if __name__ == '__main__':
     dist = os.path.join(base, 'dist')
     os.makedirs(dist, exist_ok=True)
     build_kodi_addon(kodi, src, dist)
+

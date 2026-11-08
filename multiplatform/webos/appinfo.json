@@ -8,11 +8,7 @@
   "icon": "icon.png",
   "largeIcon": "largeIcon.png",
   "bgColor": "#0E1514",
-  "splashBackground": "#0E1514",
   "resolution": "1920x1080",
   "handlesRelaunch": true,
-  "requiredPermissions": [
-    "network"
-  ]
+  "requiredACG": []
 }
-

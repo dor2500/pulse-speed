@@ -1,0 +1,14 @@
+{
+  "id": "com.dorp.pulse",
+  "version": "1.5.0",
+  "vendor": "Pulse",
+  "type": "web",
+  "main": "index.html",
+  "title": "Pulse Speed",
+  "icon": "icon.png",
+  "largeIcon": "largeIcon.png",
+  "bgColor": "#0E1514",
+  "resolution": "1920x1080",
+  "handlesRelaunch": true,
+  "requiredACG": []
+}

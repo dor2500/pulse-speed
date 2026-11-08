@@ -10,3 +10,4 @@
     <tizen:profile name="tv"/>
     <tizen:setting screen-orientation="landscape"/>
 </widget>
+
