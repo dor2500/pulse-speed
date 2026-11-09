@@ -7,6 +7,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
+import com.dorp.pulse.engine.ServerOption
 import com.dorp.pulse.engine.TestSource
 import org.json.JSONArray
 import org.json.JSONObject
@@ -197,4 +198,40 @@ fun currentNetwork(context: Context): NetworkKind {
         caps.hasTransport(NetworkCapabilities.TRANSPORT_CELLULAR) -> NetworkKind.CELLULAR
         else -> NetworkKind.OTHER
     }
+}
+
+/** The server the user picked for each source; a missing entry means "automatic". */
+class ServerChoiceStore(context: Context) {
+    private val prefs = context.getSharedPreferences("servers", Context.MODE_PRIVATE)
+    private val _choices = MutableStateFlow(load())
+    val choices: StateFlow<Map<TestSource, ServerOption>> = _choices.asStateFlow()
+
+    fun set(source: TestSource, option: ServerOption?) {
+        _choices.update { if (option == null) it - source else it + (source to option) }
+        val edit = prefs.edit()
+        if (option == null) edit.remove(source.name)
+        else edit.putString(
+            source.name,
+            JSONObject()
+                .put("id", option.id).put("name", option.name).put("location", option.location)
+                .put("distance", option.distanceKm ?: -1).put("ping", option.pingUrl).put("raw", option.raw)
+                .toString(),
+        )
+        edit.apply()
+    }
+
+    private fun load(): Map<TestSource, ServerOption> = TestSource.entries.mapNotNull { src ->
+        val text = prefs.getString(src.name, null) ?: return@mapNotNull null
+        runCatching {
+            val o = JSONObject(text)
+            src to ServerOption(
+                id = o.getString("id"),
+                name = o.getString("name"),
+                location = o.optString("location"),
+                distanceKm = o.optInt("distance", -1).takeIf { it >= 0 },
+                pingUrl = o.getString("ping"),
+                raw = o.getString("raw"),
+            )
+        }.getOrNull()
+    }.toMap()
 }

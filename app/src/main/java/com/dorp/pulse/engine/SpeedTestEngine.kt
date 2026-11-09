@@ -63,7 +63,27 @@ class PreparedTest(val info: ServerInfo, val endpoints: Endpoints)
  */
 class SpeedTestEngine {
 
-    suspend fun prepare(source: TestSource): PreparedTest = Sources.prepare(source, this)
+    suspend fun prepare(source: TestSource, choice: ServerOption?): PreparedTest = Sources.prepare(source, choice, this)
+
+    suspend fun listServers(source: TestSource, query: String): List<ServerOption> =
+        Sources.listServers(source, query, this)
+
+    /** Latency to a server for the picker, or null when it doesn't answer. */
+    suspend fun ping(option: ServerOption): Double? = withContext(Dispatchers.IO) {
+        runCatching {
+            fun hit(): Pair<Int, Double> {
+                val c = open(option.pingUrl).apply { connectTimeout = 3000; readTimeout = 3000 }
+                val t0 = System.nanoTime()
+                val code = c.responseCode
+                val ms = (System.nanoTime() - t0) / 1e6
+                runCatching { c.inputStream.use { it.readBytes() } } // drain so keep-alive reuses the socket
+                return code to ms
+            }
+            hit() // pays for DNS + TCP + TLS
+            val (code, ms) = hit()
+            if (code in 200..299) ms else null
+        }.getOrNull()
+    }
 
     suspend fun measurePing(
         ep: Endpoints,

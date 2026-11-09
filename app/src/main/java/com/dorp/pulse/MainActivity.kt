@@ -69,6 +69,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.dorp.pulse.data.localizedContext
 import com.dorp.pulse.ui.HistoryScreen
+import com.dorp.pulse.ui.ServerPickerSheet
 import com.dorp.pulse.ui.SettingsScreen
 import com.dorp.pulse.ui.TestScreen
 import com.dorp.pulse.ui.theme.PulseTheme
@@ -106,6 +107,19 @@ private fun AppRoot(vm: MainViewModel) {
     val settings by vm.settingsStore.settings.collectAsStateWithLifecycle()
     val history by vm.historyStore.items.collectAsStateWithLifecycle()
     val update by vm.update.collectAsStateWithLifecycle()
+    val choices by vm.serverChoices.choices.collectAsStateWithLifecycle()
+    val picker by vm.picker.collectAsStateWithLifecycle()
+
+    picker.source?.let { src ->
+        ServerPickerSheet(
+            state = picker,
+            current = choices[src],
+            onQuery = vm::searchServers,
+            onPick = { vm.chooseServer(src, it) },
+            onRetry = vm::retryServers,
+            onDismiss = vm::closeServerPicker,
+        )
+    }
     val activity = LocalContext.current as? Activity
     var tab by rememberSaveable { mutableIntStateOf(0) }
 
@@ -137,6 +151,8 @@ private fun AppRoot(vm: MainViewModel) {
                     unit = settings.unit,
                     source = settings.source,
                     onSourceChange = { s -> vm.settingsStore.update { it.copy(source = s) } },
+                    serverChoice = choices[settings.source],
+                    onOpenServers = { vm.openServerPicker(settings.source) },
                     onStart = vm::start,
                     onCancel = vm::cancel,
                     contentPadding = padding,

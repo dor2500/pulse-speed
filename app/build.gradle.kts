@@ -12,8 +12,8 @@ android {
         applicationId = "com.dorp.pulse"
         minSdk = 26
         targetSdk = 36
-        versionCode = 8
-        versionName = "1.5.2"
+        versionCode = 9
+        versionName = "1.6.0"
     }
 
     // The release key comes from the environment, or user's local keystore

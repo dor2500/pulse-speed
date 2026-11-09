@@ -50,6 +50,7 @@ It measures ping, jitter, download, upload and **bufferbloat / loaded latency** 
 - **Morphing gauge**: an organic four-petal shape that breathes, swells and spins faster with live speed, carries progress on an organic ring, and morphs into a capsule with the final result
 - **Expanding cards**: the card for the running phase springs larger and lifts while its test runs
 - **Four test networks**: Cloudflare, Ookla's speedtest.net servers, Netflix's FAST servers and LibreSpeed community servers, picked per test
+- **Server picker**: like Speedtest, choose a specific Ookla, FAST or LibreSpeed server (with search, distance and live ping) or leave it on Automatic
 - **Stop any time**: a Stop button ends the test instantly and discards the partial run
 - **Ping and jitter**, measured over a warm connection with server processing time subtracted
 - **Multi-stream download and upload**; the TCP warm-up window is discarded so slow start doesn't drag the result down

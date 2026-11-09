@@ -65,6 +65,7 @@ import androidx.compose.material3.FilterChip
 import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material.icons.rounded.Check
 import androidx.compose.foundation.horizontalScroll
+import com.dorp.pulse.engine.ServerOption
 import com.dorp.pulse.engine.TestSource
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
@@ -115,6 +116,8 @@ fun TestScreen(
     unit: SpeedUnit,
     source: TestSource,
     onSourceChange: (TestSource) -> Unit,
+    serverChoice: ServerOption?,
+    onOpenServers: () -> Unit,
     onStart: () -> Unit,
     onCancel: () -> Unit,
     contentPadding: PaddingValues,
@@ -134,6 +137,8 @@ fun TestScreen(
         Header(state)
         Spacer(Modifier.height(12.dp))
         SourcePicker(source, enabled = !state.running, onSourceChange)
+        Spacer(Modifier.height(8.dp))
+        ServerRow(source, serverChoice, enabled = !state.running, onOpen = onOpenServers)
         Spacer(Modifier.height(12.dp))
         MetricsRow(state, unit)
         Spacer(Modifier.height(8.dp))

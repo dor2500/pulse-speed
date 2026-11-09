@@ -15,7 +15,11 @@ import com.dorp.pulse.data.connectionDetails
 import com.dorp.pulse.data.currentNetwork
 import com.dorp.pulse.engine.ServerInfo
 import com.dorp.pulse.engine.SpeedTestEngine
+import com.dorp.pulse.engine.ServerOption
 import com.dorp.pulse.engine.TestSource
+import com.dorp.pulse.data.ServerChoiceStore
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import com.dorp.pulse.update.ReleaseInfo
 import com.dorp.pulse.update.Updater
 import java.io.File
@@ -30,6 +34,16 @@ import kotlinx.coroutines.launch
 enum class Phase { IDLE, CONNECTING, PING, DOWNLOAD, UPLOAD, DONE, ERROR }
 
 enum class TestError { OFFLINE, SERVER }
+
+/** State of the server picker sheet; [pings] holds a value (or null on failure) once a server was probed. */
+data class ServerPickerState(
+    val source: TestSource? = null,
+    val query: String = "",
+    val loading: Boolean = false,
+    val error: Boolean = false,
+    val items: List<ServerOption> = emptyList(),
+    val pings: Map<String, Double?> = emptyMap(),
+)
 
 sealed interface UpdateState {
     data object Idle : UpdateState
@@ -67,6 +81,7 @@ data class TestUiState(
 class MainViewModel(app: Application) : AndroidViewModel(app) {
     val settingsStore = SettingsStore(app)
     val historyStore = HistoryStore(app)
+    val serverChoices = ServerChoiceStore(app)
     private val engine = SpeedTestEngine()
 
     private val _state = MutableStateFlow(TestUiState(network = currentNetwork(app)))
@@ -140,6 +155,63 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
         runCatching { connectivity?.unregisterNetworkCallback(networkCallback) }
     }
 
+    private val _picker = MutableStateFlow(ServerPickerState())
+    val picker: StateFlow<ServerPickerState> = _picker.asStateFlow()
+    private var pickerJob: Job? = null
+
+    fun openServerPicker(source: TestSource) {
+        _picker.value = ServerPickerState(source = source)
+        loadServers(source, "", debounceMs = 0)
+    }
+
+    /** Ookla searches its whole directory; the other sources just filter the list on screen. */
+    fun searchServers(query: String) {
+        val source = _picker.value.source ?: return
+        _picker.update { it.copy(query = query) }
+        if (source == TestSource.OOKLA) loadServers(source, query, debounceMs = 450)
+    }
+
+    fun retryServers() {
+        val p = _picker.value
+        p.source?.let { loadServers(it, if (it == TestSource.OOKLA) p.query else "", debounceMs = 0) }
+    }
+
+    @OptIn(kotlinx.coroutines.ExperimentalCoroutinesApi::class)
+    private fun loadServers(source: TestSource, query: String, debounceMs: Long) {
+        pickerJob?.cancel()
+        pickerJob = viewModelScope.launch {
+            delay(debounceMs)
+            _picker.update { it.copy(loading = true, error = false) }
+            val items = try {
+                engine.listServers(source, query)
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: Exception) {
+                _picker.update { it.copy(loading = false, error = true, items = emptyList()) }
+                return@launch
+            }
+            _picker.update { it.copy(loading = false, items = items) }
+            // Measure each server's latency in the background so the list fills in live.
+            val io = Dispatchers.IO.limitedParallelism(8)
+            items.filter { it.id !in _picker.value.pings }.forEach { option ->
+                launch(io) {
+                    val ms = engine.ping(option)
+                    _picker.update { if (it.source == source) it.copy(pings = it.pings + (option.id to ms)) else it }
+                }
+            }
+        }
+    }
+
+    fun closeServerPicker() {
+        pickerJob?.cancel()
+        _picker.value = ServerPickerState()
+    }
+
+    fun chooseServer(source: TestSource, option: ServerOption?) {
+        serverChoices.set(source, option)
+        closeServerPicker()
+    }
+
     /** Bumped on every start/stop so callbacks from a stopped run can't touch the screen. */
     private var runId = 0
 
@@ -162,7 +234,7 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
         job = viewModelScope.launch {
             _state.value = TestUiState(phase = Phase.CONNECTING, network = network, connection = details, source = source)
             try {
-                val test = engine.prepare(source)
+                val test = engine.prepare(source, serverChoices.choices.value[source])
                 val ep = test.endpoints
                 updateRun(id) { it.copy(server = test.info, phase = Phase.PING) }
 

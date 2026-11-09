@@ -92,5 +92,17 @@
     <string name="src_fast_desc">Netflix servers, the same ones FAST.com uses</string>
     <string name="src_libre_desc">Open-source LibreSpeed community servers, fastest responder</string>
     <string name="about_engine_title">Test servers</string>
+    <string name="server_title">Server</string>
+    <string name="server_auto">Automatic</string>
+    <string name="server_auto_desc">Pulse finds the fastest nearby server</string>
+    <string name="server_auto_long">Automatic · fastest nearby</string>
+    <string name="server_change">Change</string>
+    <string name="server_choose">Choose a server</string>
+    <string name="server_search">Search city or provider</string>
+    <string name="server_error">Couldn\'t load the server list</string>
+    <string name="server_retry">Try again</string>
+    <string name="server_none">No servers match your search</string>
+    <string name="server_cloudflare_note">Automatic · Cloudflare routes you to its nearest data center</string>
+    <string name="server_km">%d km</string>
     <string name="share_text">Pulse speed test\n↓ Download %1$s\n↑ Upload %2$s\nPing %3$s ms · Jitter %4$s ms</string>
 </resources>

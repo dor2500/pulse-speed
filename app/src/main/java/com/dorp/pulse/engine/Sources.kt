@@ -9,35 +9,65 @@ import kotlinx.coroutines.withContext
 import org.json.JSONArray
 import org.json.JSONObject
 import java.io.IOException
+import java.net.URI
 import java.net.URLEncoder
 
 /** The networks Pulse can measure against. */
-enum class TestSource(val title: String) {
-    CLOUDFLARE("Cloudflare"),
-    OOKLA("Ookla"),
-    FAST("FAST"),
-    LIBRESPEED("LibreSpeed"),
+enum class TestSource(val title: String, val selectable: Boolean) {
+    CLOUDFLARE("Cloudflare", false),
+    OOKLA("Ookla", true),
+    FAST("FAST", true),
+    LIBRESPEED("LibreSpeed", true),
 }
 
 /**
- * Turns a [TestSource] into concrete endpoints: it finds the client's details and,
- * where the source has many servers, picks the one with the lowest latency.
+ * A server the user can pick. [raw] keeps the source's own JSON for that server,
+ * so a saved choice can be turned back into endpoints later.
+ */
+data class ServerOption(
+    val id: String,
+    val name: String,
+    val location: String,
+    val distanceKm: Int?,
+    val pingUrl: String,
+    val raw: String,
+)
+
+/**
+ * Turns a [TestSource] (and optionally a chosen [ServerOption]) into concrete endpoints.
+ * Without a choice, sources with many servers probe a few and use the fastest.
  *
  * Ookla and FAST are used through the same public endpoints their own web apps call;
  * neither is an official API, so they may change without notice.
  */
 internal object Sources {
 
-    suspend fun prepare(source: TestSource, engine: SpeedTestEngine): PreparedTest = withContext(Dispatchers.IO) {
-        when (source) {
-            TestSource.CLOUDFLARE -> cloudflare(engine)
-            TestSource.OOKLA -> ookla(engine)
-            TestSource.FAST -> fast(engine)
-            TestSource.LIBRESPEED -> libreSpeed(engine)
+    suspend fun prepare(source: TestSource, choice: ServerOption?, engine: SpeedTestEngine): PreparedTest =
+        withContext(Dispatchers.IO) {
+            when (source) {
+                TestSource.CLOUDFLARE -> cloudflare(engine)
+                TestSource.OOKLA -> ookla(engine, choice)
+                TestSource.FAST -> fast(engine, choice)
+                TestSource.LIBRESPEED -> libreSpeed(engine, choice)
+            }
         }
-    }
+
+    /** Servers to show in the picker. [query] searches Ookla's directory; other sources filter locally. */
+    suspend fun listServers(source: TestSource, query: String, engine: SpeedTestEngine): List<ServerOption> =
+        withContext(Dispatchers.IO) {
+            val all = when (source) {
+                TestSource.CLOUDFLARE -> emptyList()
+                TestSource.OOKLA -> ooklaServers(engine, limit = 40, query = query).map(::ooklaOption)
+                TestSource.FAST -> fastOptions(engine)
+                TestSource.LIBRESPEED -> libreServers(engine).map(::libreOption)
+            }
+            if (query.isBlank() || source == TestSource.OOKLA) all
+            else all.filter { (it.name + " " + it.location).contains(query.trim(), ignoreCase = true) }
+        }
 
     private fun nonce() = System.nanoTime().toString(36)
+
+    private fun place(vararg parts: String?) = parts.filterNot { it.isNullOrBlank() }.joinToString(", ")
 
     // ---- Cloudflare -------------------------------------------------------------------------
 
@@ -45,12 +75,12 @@ internal object Sources {
         val base = SpeedTestEngine.CLOUDFLARE
         val meta = engine.clientMeta()
         val colo = meta?.optJSONObject("colo")?.optString("iata") ?: meta?.optString("colo").orEmpty()
-        val place = COLO_NAMES[colo]?.let { "$it ($colo)" } ?: colo
+        val where = COLO_NAMES[colo]?.let { "$it ($colo)" } ?: colo
         return PreparedTest(
             ServerInfo(
                 ip = meta?.optString("clientIp").orEmpty(),
                 isp = meta?.optString("asOrganization").orEmpty(),
-                serverLabel = listOf("Cloudflare", place).filter { it.isNotBlank() }.joinToString(" · "),
+                serverLabel = listOf("Cloudflare", where).filter { it.isNotBlank() }.joinToString(" · "),
                 protocol = meta?.optString("httpProtocol").orEmpty(),
             ),
             Endpoints(
@@ -64,27 +94,40 @@ internal object Sources {
 
     // ---- Ookla (speedtest.net server network) -----------------------------------------------
 
-    private suspend fun ookla(engine: SpeedTestEngine): PreparedTest = coroutineScope {
+    private fun ooklaServers(engine: SpeedTestEngine, limit: Int, query: String = ""): List<JSONObject> {
+        var url = "https://www.speedtest.net/api/js/servers?engine=js&https_functional=true&limit=$limit"
+        if (query.isNotBlank()) url += "&search=" + URLEncoder.encode(query.trim(), "UTF-8")
+        val arr = JSONArray(engine.get(url))
+        return (0 until arr.length()).map { arr.getJSONObject(it) }
+    }
+
+    private fun ooklaOption(s: JSONObject) = ServerOption(
+        id = s.optString("id"),
+        name = s.optString("sponsor"),
+        location = place(s.optString("name"), s.optString("country")),
+        distanceKm = s.optInt("distance", -1).takeIf { it >= 0 },
+        pingUrl = "https://${s.getString("host")}/hello",
+        raw = s.toString(),
+    )
+
+    private suspend fun ookla(engine: SpeedTestEngine, choice: ServerOption?): PreparedTest = coroutineScope {
         val metaJob = async { engine.clientMeta() }
-        val servers = JSONArray(
-            engine.get("https://www.speedtest.net/api/js/servers?engine=js&limit=10&https_functional=true")
-        )
-        if (servers.length() == 0) throw IOException("No Ookla servers")
-        // The list is already sorted by distance; probe the nearest few and keep the fastest.
-        val candidates = (0 until minOf(6, servers.length())).map { servers.getJSONObject(it) }
-        val best = candidates
-            .map { s -> async { s to engine.probe("https://${s.getString("host")}/hello", 2500) } }
-            .awaitAll()
-            .filter { it.second != null }
-            .minByOrNull { it.second!! }?.first
-            ?: throw IOException("No Ookla server answered")
-        val host = best.getString("host")
+        val server = if (choice != null) JSONObject(choice.raw) else {
+            // The list is sorted by distance; probe the nearest few and keep the fastest.
+            ooklaServers(engine, limit = 10).take(6)
+                .map { s -> async { s to engine.probe("https://${s.getString("host")}/hello", 2500) } }
+                .awaitAll()
+                .filter { it.second != null }
+                .minByOrNull { it.second!! }?.first
+                ?: throw IOException("No Ookla server answered")
+        }
+        val host = server.getString("host")
         val meta = metaJob.await()
         PreparedTest(
             ServerInfo(
                 ip = meta?.optString("clientIp").orEmpty(),
                 isp = meta?.optString("asOrganization").orEmpty(),
-                serverLabel = "Ookla · ${best.optString("sponsor")}, ${best.optString("name")}",
+                serverLabel = "Ookla · ${server.optString("sponsor")}, ${server.optString("name")}",
                 protocol = "",
             ),
             Endpoints(
@@ -97,32 +140,55 @@ internal object Sources {
 
     // ---- FAST.com (Netflix Open Connect) ----------------------------------------------------
 
-    private fun fast(engine: SpeedTestEngine): PreparedTest {
+    /** Each target is ".../speedtest?<signed query>"; ranges go between the path and the query. */
+    private fun ranged(url: String, range: String): String {
+        val q = url.indexOf('?')
+        return if (q < 0) "$url/range/$range" else url.substring(0, q) + "/range/$range" + url.substring(q)
+    }
+
+    private fun hostOf(url: String) = runCatching { URI(url).host }.getOrNull().orEmpty()
+
+    private fun fastOptions(engine: SpeedTestEngine): List<ServerOption> {
+        val targets = fastTargets(engine).getJSONArray("targets")
+        return (0 until targets.length()).map { i ->
+            val t = targets.getJSONObject(i)
+            val loc = t.optJSONObject("location")
+            ServerOption(
+                id = hostOf(t.getString("url")),
+                name = "Netflix Open Connect",
+                location = place(loc?.optString("city"), loc?.optString("country")),
+                distanceKm = null,
+                pingUrl = ranged(t.getString("url"), "0-0"),
+                raw = t.toString(),
+            )
+        }.distinctBy { it.id }
+    }
+
+    private fun fast(engine: SpeedTestEngine, choice: ServerOption?): PreparedTest {
         val json = fastTargets(engine)
         val targets = json.getJSONArray("targets")
         if (targets.length() == 0) throw IOException("No FAST targets")
-        // Each target is ".../speedtest?<signed query>"; ranges go between the path and the query.
-        val urls = (0 until targets.length()).map { targets.getJSONObject(it).getString("url") }
-        fun ranged(url: String, range: String): String {
-            val q = url.indexOf('?')
-            return if (q < 0) "$url/range/$range" else url.substring(0, q) + "/range/$range" + url.substring(q)
-        }
+        val all = (0 until targets.length()).map { targets.getJSONObject(it) }
+        // FAST URLs are signed and expire, so a saved choice is matched by host against a fresh list.
+        val picked = choice?.let { c -> all.filter { hostOf(it.getString("url")) == c.id } }?.ifEmpty { null }
+            ?: choice?.let { listOf(JSONObject(it.raw)) }
+            ?: all
+        val urls = picked.map { it.getString("url") }
         val client = json.optJSONObject("client")
-        val loc = targets.getJSONObject(0).optJSONObject("location")
-        val place = listOfNotNull(loc?.optString("city")?.ifBlank { null }, loc?.optString("country")?.ifBlank { null })
-            .joinToString(", ")
+        val loc = picked.first().optJSONObject("location")
         return PreparedTest(
             ServerInfo(
                 ip = client?.optString("ip").orEmpty(),
                 isp = client?.optString("isp").orEmpty(),
-                serverLabel = listOf("FAST · Netflix", place).filter { it.isNotBlank() }.joinToString(" · "),
+                serverLabel = listOf("FAST · Netflix", place(loc?.optString("city"), loc?.optString("country")))
+                    .filter { it.isNotBlank() }.joinToString(" · "),
                 protocol = "",
             ),
             Endpoints(
                 ping = ranged(urls[0], "0-0"),
                 download = { stream -> ranged(urls[stream % urls.size], "0-26214400") },
                 upload = { stream -> ranged(urls[stream % urls.size], "0-0") },
-                downStreams = maxOf(urls.size, 4).coerceAtMost(8),
+                downStreams = if (urls.size == 1) 6 else maxOf(urls.size, 4).coerceAtMost(8),
             ),
         )
     }
@@ -148,21 +214,43 @@ internal object Sources {
 
     // ---- LibreSpeed (community servers) -----------------------------------------------------
 
-    @OptIn(ExperimentalCoroutinesApi::class)
-    private suspend fun libreSpeed(engine: SpeedTestEngine): PreparedTest = coroutineScope {
-        val metaJob = async { engine.clientMeta() }
+    private fun join(server: String, path: String) = server.trimEnd('/') + "/" + path.trimStart('/')
+
+    private fun libreServers(engine: SpeedTestEngine): List<JSONObject> {
         val list = JSONArray(engine.get("https://librespeed.org/backend-servers/servers.php"))
-        val servers = (0 until list.length()).map { list.getJSONObject(it) }
-        if (servers.isEmpty()) throw IOException("No LibreSpeed servers")
-        fun join(server: String, path: String) = server.trimEnd('/') + "/" + path.trimStart('/')
-        // Probe them all (the list is ~100 servers worldwide) with a short timeout; nearest wins.
-        val io = Dispatchers.IO.limitedParallelism(24)
-        val best = servers
-            .map { s -> async(io) { s to engine.probe(join(s.getString("server"), s.getString("pingURL")), 1500) } }
-            .awaitAll()
-            .filter { it.second != null }
-            .minByOrNull { it.second!! }?.first
-            ?: throw IOException("No LibreSpeed server answered")
+        return (0 until list.length()).map { list.getJSONObject(it) }
+    }
+
+    private fun libreOption(s: JSONObject): ServerOption {
+        val name = s.optString("name")
+        // Names look like "Amsterdam, Netherlands (Clouvider)": split the sponsor off the place.
+        val sponsor = s.optString("sponsorName").ifBlank { Regex("\\(([^)]+)\\)\\s*$").find(name)?.groupValues?.get(1).orEmpty() }
+        val where = name.replace(Regex("\\s*\\([^)]*\\)\\s*$"), "")
+        return ServerOption(
+            id = s.optString("id"),
+            name = sponsor.ifBlank { where },
+            location = where,
+            distanceKm = null,
+            pingUrl = join(s.getString("server"), s.getString("pingURL")),
+            raw = s.toString(),
+        )
+    }
+
+    @OptIn(ExperimentalCoroutinesApi::class)
+    private suspend fun libreSpeed(engine: SpeedTestEngine, choice: ServerOption?): PreparedTest = coroutineScope {
+        val metaJob = async { engine.clientMeta() }
+        val best = if (choice != null) JSONObject(choice.raw) else {
+            val servers = libreServers(engine)
+            if (servers.isEmpty()) throw IOException("No LibreSpeed servers")
+            // Probe them all (~100 worldwide) with a short timeout; the nearest wins.
+            val io = Dispatchers.IO.limitedParallelism(24)
+            servers
+                .map { s -> async(io) { s to engine.probe(join(s.getString("server"), s.getString("pingURL")), 1500) } }
+                .awaitAll()
+                .filter { it.second != null }
+                .minByOrNull { it.second!! }?.first
+                ?: throw IOException("No LibreSpeed server answered")
+        }
         val server = best.getString("server")
         val meta = metaJob.await()
         PreparedTest(
