@@ -45,6 +45,8 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.animation.togetherWith
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.History
+import androidx.compose.material.icons.outlined.NetworkPing
+import androidx.compose.material.icons.rounded.NetworkPing
 import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.material.icons.outlined.Speed
 import androidx.compose.material.icons.rounded.History
@@ -69,6 +71,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.dorp.pulse.data.localizedContext
 import com.dorp.pulse.ui.HistoryScreen
+import com.dorp.pulse.ui.PingScreen
 import com.dorp.pulse.ui.ServerPickerSheet
 import com.dorp.pulse.ui.SettingsScreen
 import com.dorp.pulse.ui.TestScreen
@@ -109,6 +112,11 @@ private fun AppRoot(vm: MainViewModel) {
     val update by vm.update.collectAsStateWithLifecycle()
     val choices by vm.serverChoices.choices.collectAsStateWithLifecycle()
     val picker by vm.picker.collectAsStateWithLifecycle()
+    val ping by vm.ping.state.collectAsStateWithLifecycle()
+    val scan by vm.scan.state.collectAsStateWithLifecycle()
+    var toolTab by rememberSaveable { mutableIntStateOf(0) }
+    val account by vm.cloud.state.collectAsStateWithLifecycle()
+    val accountError by vm.cloud.error.collectAsStateWithLifecycle()
 
     picker.source?.let { src ->
         ServerPickerSheet(
@@ -130,6 +138,7 @@ private fun AppRoot(vm: MainViewModel) {
                 selected = tab,
                 items = listOf(
                     NavSpec(Icons.Rounded.Speed, Icons.Outlined.Speed, stringResource(R.string.tab_test)),
+                    NavSpec(Icons.Rounded.NetworkPing, Icons.Outlined.NetworkPing, stringResource(R.string.tab_ping)),
                     NavSpec(Icons.Rounded.History, Icons.Outlined.History, stringResource(R.string.tab_history)),
                     NavSpec(
                         Icons.Rounded.Settings, Icons.Outlined.Settings, stringResource(R.string.tab_settings),
@@ -157,11 +166,28 @@ private fun AppRoot(vm: MainViewModel) {
                     onCancel = vm::cancel,
                     contentPadding = padding,
                 )
-                1 -> HistoryScreen(
+                1 -> PingScreen(
+                    state = ping,
+                    onHostChange = vm.ping::setHost,
+                    onModeChange = vm.ping::setMode,
+                    onCountChange = vm.ping::setCount,
+                    onStart = vm.ping::start,
+                    onStop = vm.ping::stop,
+                    onForgetRecent = vm.ping::forgetRecent,
+                    onRefreshLocal = vm.ping::refreshLocal,
+                    toolTab = toolTab,
+                    onToolTab = { toolTab = it },
+                    scan = scan,
+                    onScanStart = vm.scan::start,
+                    onScanStop = vm.scan::stop,
+                    onScanRefresh = vm.scan::refresh,
+                    contentPadding = padding,
+                )
+                2 -> HistoryScreen(
                     items = history,
                     unit = settings.unit,
-                    onDelete = vm.historyStore::delete,
-                    onClear = vm.historyStore::clear,
+                    onDelete = vm::deleteResult,
+                    onClear = vm::clearHistory,
                     onExportCsv = {
                         val csv = vm.historyStore.exportCsv()
                         val intent = Intent(Intent.ACTION_SEND).apply {
@@ -183,6 +209,11 @@ private fun AppRoot(vm: MainViewModel) {
                     update = update,
                     onCheckUpdate = { vm.checkForUpdates() },
                     onDownloadUpdate = vm::downloadUpdate,
+                    account = account,
+                    accountError = accountError,
+                    onSignIn = { activity?.let(vm::signIn) },
+                    onSignOut = vm.cloud::signOut,
+                    onDeleteCloud = vm.cloud::deleteCloudData,
                     contentPadding = padding,
                 )
             }
@@ -193,7 +224,7 @@ private fun AppRoot(vm: MainViewModel) {
 private class NavSpec(val selectedIcon: ImageVector, val icon: ImageVector, val label: String, val badge: Boolean = false)
 
 /**
- * A compact floating pill navigation bar that hugs its contents (about 216dp wide,
+ * A compact floating pill navigation bar that hugs its contents (about 288dp wide,
  * 60dp tall), centred, floating 20dp above the system gesture bar. The selected
  * destination gets a small tonal pill behind its icon.
  */
@@ -211,7 +242,7 @@ private fun FloatingNavBar(selected: Int, items: List<NavSpec>, onSelect: (Int) 
             color = MaterialTheme.colorScheme.surfaceContainerHigh,
             tonalElevation = 3.dp,
             shadowElevation = 8.dp,
-            modifier = Modifier.widthIn(max = 260.dp),
+            modifier = Modifier.widthIn(max = 320.dp),
         ) {
             Row(
                 Modifier

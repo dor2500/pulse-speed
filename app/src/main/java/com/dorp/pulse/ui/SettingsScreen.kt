@@ -66,6 +66,8 @@ import androidx.compose.ui.unit.dp
 import com.dorp.pulse.BuildConfig
 import com.dorp.pulse.R
 import com.dorp.pulse.UpdateState
+import com.dorp.pulse.data.AccountError
+import com.dorp.pulse.data.AccountState
 import com.dorp.pulse.data.AppLanguage
 import com.dorp.pulse.data.AppSettings
 import com.dorp.pulse.update.Updater
@@ -82,6 +84,11 @@ fun SettingsScreen(
     update: UpdateState,
     onCheckUpdate: () -> Unit,
     onDownloadUpdate: () -> Unit,
+    account: AccountState,
+    accountError: AccountError?,
+    onSignIn: () -> Unit,
+    onSignOut: () -> Unit,
+    onDeleteCloud: () -> Unit,
     contentPadding: PaddingValues,
 ) {
     val context = LocalContext.current
@@ -99,6 +106,7 @@ fun SettingsScreen(
             modifier = Modifier.padding(top = 20.dp, bottom = 12.dp),
         )
 
+        AccountCard(account, accountError, onSignIn, onSignOut, onDeleteCloud)
         UpdateCard(update, onCheckUpdate, onDownloadUpdate)
 
         Section(stringResource(R.string.settings_appearance)) {

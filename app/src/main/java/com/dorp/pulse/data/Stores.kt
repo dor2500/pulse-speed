@@ -102,6 +102,11 @@ class HistoryStore(context: Context) {
     fun add(result: TestResult) = save((listOf(result) + _items.value).take(MAX_ITEMS))
     fun delete(time: Long) = save(_items.value.filterNot { it.time == time })
     fun clear() = save(emptyList())
+    /** Replaces the whole list, newest first (used by cloud sync). */
+    fun replaceAll(list: List<TestResult>) {
+        val merged = list.distinctBy { it.time }.sortedByDescending { it.time }.take(MAX_ITEMS)
+        if (merged != _items.value) save(merged)
+    }
 
     fun exportCsv(): String {
         val sb = StringBuilder("Timestamp,Date,Source,Server,ISP,Network,Download_Mbps,Upload_Mbps,Ping_ms,Jitter_ms,Down_Loaded_Ping_ms,Up_Loaded_Ping_ms,Bufferbloat_Grade\n")

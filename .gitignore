@@ -12,3 +12,5 @@ release/
 dist/
 .agents/
 .claude/
+# Firebase config is per project; see docs/firebase-setup.md
+app/google-services.json

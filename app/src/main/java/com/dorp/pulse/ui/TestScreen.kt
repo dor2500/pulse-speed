@@ -103,6 +103,8 @@ import com.dorp.pulse.R
 import com.dorp.pulse.TestError
 import com.dorp.pulse.TestUiState
 import com.dorp.pulse.data.NetworkKind
+import com.dorp.pulse.data.ShareLink
+import com.dorp.pulse.data.TestResult
 import com.dorp.pulse.data.SpeedUnit
 import kotlin.math.max
 
@@ -354,6 +356,7 @@ private fun ActionRow(state: TestUiState, unit: SpeedUnit, onStart: () -> Unit, 
                 formatMs(state.jitterMs ?: 0.0),
             )
             val shareTitle = stringResource(R.string.share)
+            val finishedAt = androidx.compose.runtime.remember(state.downloadMbps, state.uploadMbps) { System.currentTimeMillis() }
             Row(
                 Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(10.dp),
@@ -372,8 +375,22 @@ private fun ActionRow(state: TestUiState, unit: SpeedUnit, onStart: () -> Unit, 
                 // Secondary: outlined pill.
                 OutlinedButton(
                     onClick = {
-                        val send = Intent(Intent.ACTION_SEND).setType("text/plain").putExtra(Intent.EXTRA_TEXT, shareText)
-                        context.startActivity(Intent.createChooser(send, shareTitle))
+                        val result = TestResult(
+                            time = finishedAt,
+                            downloadMbps = state.downloadMbps ?: 0.0,
+                            uploadMbps = state.uploadMbps ?: 0.0,
+                            pingMs = state.pingMs ?: 0.0,
+                            jitterMs = state.jitterMs ?: 0.0,
+                            isp = state.server?.isp.orEmpty(),
+                            server = state.server?.serverLabel.orEmpty(),
+                            network = state.network,
+                            source = state.source,
+                            downLoadedPingMs = state.downLoadedPingMs,
+                            upLoadedPingMs = state.upLoadedPingMs,
+                            bufferbloatGrade = state.bufferbloatGrade,
+                        )
+                        val link = ShareLink.build(result, state.downSamples, state.upSamples, state.connection)
+                        ShareLink.share(context, shareText, link, shareTitle)
                     },
                     shape = CircleShape,
                     border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline),

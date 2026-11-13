@@ -7,6 +7,7 @@ import android.net.NetworkCapabilities
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.dorp.pulse.data.ConnectionDetails
+import com.dorp.pulse.data.CloudSync
 import com.dorp.pulse.data.HistoryStore
 import com.dorp.pulse.data.NetworkKind
 import com.dorp.pulse.data.SettingsStore
@@ -82,6 +83,24 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
     val settingsStore = SettingsStore(app)
     val historyStore = HistoryStore(app)
     val serverChoices = ServerChoiceStore(app)
+    val ping = PingController(app, viewModelScope)
+    val scan = ScanController(app, viewModelScope)
+    val cloud = CloudSync(app, historyStore, viewModelScope)
+
+    fun signIn(activityContext: android.content.Context) {
+        viewModelScope.launch { cloud.signIn(activityContext) }
+    }
+
+    fun deleteResult(time: Long) {
+        historyStore.delete(time)
+        cloud.pushDeleted(time)
+    }
+
+    fun clearHistory() {
+        val times = historyStore.items.value.map { it.time }
+        historyStore.clear()
+        cloud.pushCleared(times)
+    }
     private val engine = SpeedTestEngine()
 
     private val _state = MutableStateFlow(TestUiState(network = currentNetwork(app)))
@@ -152,6 +171,8 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
     }
 
     override fun onCleared() {
+        ping.stop()
+        scan.stop()
         runCatching { connectivity?.unregisterNetworkCallback(networkCallback) }
     }
 
@@ -276,8 +297,7 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
                     )
                 }
 
-                historyStore.add(
-                    TestResult(
+                val result = TestResult(
                         time = System.currentTimeMillis(),
                         downloadMbps = down.mbps,
                         uploadMbps = up.mbps,
@@ -291,7 +311,8 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
                         upLoadedPingMs = up.loadedPingMs,
                         bufferbloatGrade = grade,
                     )
-                )
+                historyStore.add(result)
+                cloud.pushAdded(result)
             } catch (e: CancellationException) {
                 throw e
             } catch (e: Exception) {
