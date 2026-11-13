@@ -138,10 +138,10 @@
     <string name="account_sign_in">Sign in with Google</string>
     <string name="account_signing_in">Signing in…</string>
     <string name="account_sign_out">Sign out</string>
-    <string name="account_delete_cloud">Delete cloud data</string>
-    <string name="account_delete_title">Delete cloud data?</string>
-    <string name="account_delete_body">Your synced history will be removed from the cloud and you will be signed out. The history on this device is kept.</string>
-    <string name="account_delete_confirm">Delete</string>
+    <string name="account_delete_cloud">Delete account</string>
+    <string name="account_delete_title">Delete your account?</string>
+    <string name="account_delete_body">Your Pulse account and all synced history will be permanently deleted from the cloud. This can’t be undone. The history on this device is kept.</string>
+    <string name="account_delete_confirm">Delete account</string>
     <string name="account_err_play">Google sign-in needs Google Play services, which this device doesn’t have.</string>
     <string name="account_err_no_account">No Google account found. Add one in Android settings and try again.</string>
     <string name="account_err_failed">Sign-in didn’t work. Check your connection and try again.</string>
@@ -173,4 +173,5 @@
     <string name="dev_smart_home">Smart home</string>
     <string name="dev_unknown">Device</string>
     <string name="share_link">Share link</string>
+    <string name="about_privacy">Privacy policy</string>
 </resources>

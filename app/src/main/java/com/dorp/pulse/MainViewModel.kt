@@ -91,6 +91,10 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
         viewModelScope.launch { cloud.signIn(activityContext) }
     }
 
+    fun deleteAccount(activityContext: android.content.Context) {
+        viewModelScope.launch { cloud.deleteAccount(activityContext) }
+    }
+
     fun deleteResult(time: Long) {
         historyStore.delete(time)
         cloud.pushDeleted(time)
@@ -120,7 +124,7 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
 
     init {
         runCatching { connectivity?.registerDefaultNetworkCallback(networkCallback) }
-        checkForUpdates(silent = true)
+        if (BuildConfig.SELF_UPDATE) checkForUpdates(silent = true)
     }
 
     /** A silent check (at launch) never shows an error or "up to date"; it only surfaces a newer version. */

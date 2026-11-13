@@ -14,8 +14,10 @@ PULSE_KEYSTORE_PASSWORD="$(cat "$key_dir/release-password.txt")"
 export PULSE_KEYSTORE_PASSWORD
 export PULSE_KEY_ALIAS=pulse
 
-./gradlew --no-daemon assembleRelease
+# GitHub APK (self-updating) for the release page, Play bundle (no self-update) for the Play Console.
+./gradlew --no-daemon assembleGithubRelease bundlePlayRelease
 
-apk="app/build/outputs/apk/release/Pulse-$tag.apk"
-cp app/build/outputs/apk/release/app-release.apk "$apk"
+apk="app/build/outputs/apk/github/release/Pulse-$tag.apk"
+cp app/build/outputs/apk/github/release/app-github-release.apk "$apk"
+echo "Play bundle: app/build/outputs/bundle/playRelease/app-play-release.aab"
 gh release create "$tag" "$apk" --title "Pulse $tag" --notes-file "$notes"

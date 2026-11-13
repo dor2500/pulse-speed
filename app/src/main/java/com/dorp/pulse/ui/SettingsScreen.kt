@@ -45,6 +45,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Code
+import androidx.compose.material.icons.rounded.Policy
 import androidx.compose.material.icons.rounded.Info
 import androidx.compose.material.icons.rounded.Palette
 import androidx.compose.material.icons.rounded.Public
@@ -76,6 +77,7 @@ import com.dorp.pulse.data.TestLength
 import com.dorp.pulse.data.ThemeMode
 
 const val REPO_URL = "https://github.com/dor2500/pulse-speed"
+const val PRIVACY_URL = "https://dor2500.github.io/pulse-speed/privacy/"
 
 @Composable
 fun SettingsScreen(
@@ -107,7 +109,8 @@ fun SettingsScreen(
         )
 
         AccountCard(account, accountError, onSignIn, onSignOut, onDeleteCloud)
-        UpdateCard(update, onCheckUpdate, onDownloadUpdate)
+        // Play builds are updated by the store, so the self-updater is compiled out of them.
+        if (BuildConfig.SELF_UPDATE) UpdateCard(update, onCheckUpdate, onDownloadUpdate)
 
         Section(stringResource(R.string.settings_appearance)) {
             Label(stringResource(R.string.settings_language))
@@ -188,6 +191,15 @@ fun SettingsScreen(
                 colors = itemColors,
                 modifier = Modifier.clickable {
                     context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(REPO_URL)))
+                },
+            )
+            ListItem(
+                headlineContent = { Text(stringResource(R.string.about_privacy)) },
+                supportingContent = { Text(PRIVACY_URL.removePrefix("https://")) },
+                leadingContent = { Icon(Icons.Rounded.Policy, null) },
+                colors = itemColors,
+                modifier = Modifier.clickable {
+                    context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(PRIVACY_URL)))
                 },
             )
         }

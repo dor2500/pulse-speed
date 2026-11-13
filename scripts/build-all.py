@@ -31,8 +31,8 @@ def main():
     print("=====================================================\n")
 
     # 1. Android APK - Prefer official signed release build
-    apk_release = os.path.join(root, "app", "build", "outputs", "apk", "release", "app-release.apk")
-    apk_debug = os.path.join(root, "app", "build", "outputs", "apk", "debug", "app-debug.apk")
+    apk_release = os.path.join(root, "app", "build", "outputs", "apk", "github", "release", "app-github-release.apk")
+    apk_debug = os.path.join(root, "app", "build", "outputs", "apk", "github", "debug", "app-github-debug.apk")
     apk_src = apk_release if os.path.exists(apk_release) else apk_debug
     apk_dest = os.path.join(dist, f"Pulse-v{VERSION}.apk")
     if os.path.exists(apk_src):

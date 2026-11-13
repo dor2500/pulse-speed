@@ -65,7 +65,8 @@ fun localTargets(context: Context): LocalTargets = runCatching {
     val cm = context.getSystemService(ConnectivityManager::class.java)
     val lp = cm?.getLinkProperties(cm.activeNetwork) ?: return LocalTargets(null, emptyList())
     val gateway = lp.routes
-        .filter { it.isDefaultRoute && it.hasGateway() }
+        // RouteInfo.hasGateway() is API 29+; a default route without a gateway reports 0.0.0.0 / ::
+        .filter { it.isDefaultRoute && it.gateway?.isAnyLocalAddress == false }
         .map { it.gateway }
         .sortedBy { if (it is Inet4Address) 0 else 1 }
         .firstOrNull()?.hostAddress
