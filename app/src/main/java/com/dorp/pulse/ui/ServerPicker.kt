@@ -278,7 +278,7 @@ private fun PingBadge(pings: Map<String, Double?>, id: String) {
                 else -> scheme.surfaceContainerHighest to scheme.onSurfaceVariant
             }
             Text(
-                "⁦${formatMs(ms)} ${stringResource(R.string.unit_ms)}⁩",
+                "\u2066${formatMs(ms)} ${stringResource(R.string.unit_ms)}\u2069",
                 style = MaterialTheme.typography.labelMedium,
                 color = fg,
                 modifier = Modifier

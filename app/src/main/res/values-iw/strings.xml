@@ -140,10 +140,10 @@
     <string name="account_sign_in">כניסה עם Google</string>
     <string name="account_signing_in">מתחבר…</string>
     <string name="account_sign_out">יציאה</string>
-    <string name="account_delete_cloud">מחיקת נתוני ענן</string>
-    <string name="account_delete_title">למחוק את נתוני הענן?</string>
-    <string name="account_delete_body">ההיסטוריה המסונכרנת תימחק מהענן ותתבצע יציאה מהחשבון. ההיסטוריה במכשיר הזה תישמר.</string>
-    <string name="account_delete_confirm">מחיקה</string>
+    <string name="account_delete_cloud">מחיקת החשבון</string>
+    <string name="account_delete_title">למחוק את החשבון?</string>
+    <string name="account_delete_body">חשבון Pulse שלכם וכל ההיסטוריה המסונכרנת יימחקו לצמיתות מהענן. אי אפשר לבטל את זה. ההיסטוריה במכשיר הזה תישמר.</string>
+    <string name="account_delete_confirm">מחיקת החשבון</string>
     <string name="account_err_play">כניסה עם Google דורשת את שירותי Google Play, שאינם קיימים במכשיר הזה.</string>
     <string name="account_err_no_account">לא נמצא חשבון Google. הוסיפו חשבון בהגדרות Android ונסו שוב.</string>
     <string name="account_err_failed">הכניסה נכשלה. בדקו את החיבור ונסו שוב.</string>
@@ -175,4 +175,5 @@
     <string name="dev_smart_home">בית חכם</string>
     <string name="dev_unknown">מכשיר</string>
     <string name="share_link">שיתוף קישור</string>
+    <string name="about_privacy">מדיניות פרטיות</string>
 </resources>

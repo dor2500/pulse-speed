@@ -16,8 +16,22 @@ android {
         applicationId = "com.dorp.pulse"
         minSdk = 26
         targetSdk = 36
-        versionCode = 10
-        versionName = "1.7.0"
+        versionCode = 11
+        versionName = "1.7.1"
+    }
+
+    // "github" is the sideloaded build that updates itself from GitHub Releases.
+    // "play" is for Google Play, which forbids self-updates and the install-packages permission.
+    flavorDimensions += "store"
+    productFlavors {
+        create("github") {
+            dimension = "store"
+            buildConfigField("boolean", "SELF_UPDATE", "true")
+        }
+        create("play") {
+            dimension = "store"
+            buildConfigField("boolean", "SELF_UPDATE", "false")
+        }
     }
 
     // The release key comes from the environment, or user's local keystore
@@ -54,6 +68,14 @@ android {
         jvmTarget = "17"
         freeCompilerArgs += "-opt-in=androidx.compose.material3.ExperimentalMaterial3Api"
     }
+    // Pulse switches language in-app (Settings → Language), so the Play bundle must ship every language
+    // instead of only the device's one.
+    bundle {
+        language {
+            enableSplit = false
+        }
+    }
+
     buildFeatures {
         compose = true
         buildConfig = true

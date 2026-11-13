@@ -14,7 +14,8 @@ includes a `google-services.json`. To turn it on:
    passes to Credential Manager (it lands in `google-services.json` as `default_web_client_id`).
 4. **Firestore Database → Create database** (production mode, any region), then paste
    [`firestore.rules`](../firestore.rules) into **Rules** and publish.
-5. **Download `google-services.json`** into `app/` (it's git-ignored) and build:
+5. **Google Play builds:** after the first upload to Play, also add the **App signing key** SHA-1 from Play Console (Test and release → App integrity), because Play re-signs the app with its own key.
+6. **Download `google-services.json`** into `app/` (it's git-ignored) and build:
    ```bash
    ./gradlew assembleRelease
    ```

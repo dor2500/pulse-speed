@@ -412,7 +412,7 @@ private fun DataLabel(icon: ImageVector, text: String, container: Color, content
         Spacer(Modifier.width(6.dp))
         // Isolate as LTR so "100 ms" doesn't flip to "ms 100" in Hebrew.
         Text(
-            "⁦$text⁩",
+            "\u2066$text\u2069",
             style = MaterialTheme.typography.labelMedium,
             color = content,
             maxLines = 1,

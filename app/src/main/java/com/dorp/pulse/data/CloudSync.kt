@@ -17,6 +17,7 @@ import com.google.android.libraries.identity.googleid.GetSignInWithGoogleOption
 import com.google.android.libraries.identity.googleid.GoogleIdTokenCredential
 import com.google.firebase.FirebaseApp
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.auth.FirebaseAuthRecentLoginRequiredException
 import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.auth.GoogleAuthProvider
 import com.google.firebase.firestore.CollectionReference
@@ -163,15 +164,7 @@ class CloudSync(private val app: Application, private val history: HistoryStore,
         _error.value = null
         _state.value = AccountState.SigningIn
         try {
-            val request = GetCredentialRequest.Builder()
-                .addCredentialOption(GetSignInWithGoogleOption.Builder(clientId).build())
-                .build()
-            val result = CredentialManager.create(activityContext).getCredential(activityContext, request)
-            val credential = result.credential
-            if (credential !is CustomCredential || credential.type != GoogleIdTokenCredential.TYPE_GOOGLE_ID_TOKEN_CREDENTIAL) {
-                throw IllegalStateException("Unexpected credential ${credential.type}")
-            }
-            val idToken = GoogleIdTokenCredential.createFrom(credential.data).idToken
+            val idToken = googleIdToken(activityContext, clientId)
             auth.signInWithCredential(GoogleAuthProvider.getCredential(idToken, null)).await()
             // The auth state listener takes over from here.
         } catch (e: CancellationException) {
@@ -198,6 +191,18 @@ class CloudSync(private val app: Application, private val history: HistoryStore,
         }
     }
 
+    /** Shows Google's account sheet and returns a fresh ID token for Firebase. */
+    private suspend fun googleIdToken(activityContext: Context, clientId: String): String {
+        val request = GetCredentialRequest.Builder()
+            .addCredentialOption(GetSignInWithGoogleOption.Builder(clientId).build())
+            .build()
+        val credential = CredentialManager.create(activityContext).getCredential(activityContext, request).credential
+        if (credential !is CustomCredential || credential.type != GoogleIdTokenCredential.TYPE_GOOGLE_ID_TOKEN_CREDENTIAL) {
+            throw IllegalStateException("Unexpected credential ${credential.type}")
+        }
+        return GoogleIdTokenCredential.createFrom(credential.data).idToken
+    }
+
     fun signOut() {
         val auth = auth ?: return
         stopSync()
@@ -207,27 +212,40 @@ class CloudSync(private val app: Application, private val history: HistoryStore,
         }
     }
 
-    /** Deletes this account's history from the cloud (the local copy stays) and signs out. */
-    fun deleteCloudData() {
-        val uid = auth?.currentUser?.uid ?: return
+    /**
+     * Deletes the account: every synced result in Firestore, then the Firebase user itself (Google Play's
+     * account-deletion requirement). The history stored on this device stays. If Firebase wants a recent
+     * sign-in first, Google's account sheet is shown once to re-confirm, and the deletion is retried.
+     */
+    suspend fun deleteAccount(activityContext: Context) {
+        val auth = auth ?: return
+        val user = auth.currentUser ?: return
+        val clientId = webClientId ?: return
         stopSync()
         setSync(SyncStatus.SYNCING)
-        scope.launch {
-            try {
-                val col = results(uid)
-                col.get().await().documents.chunked(400).forEach { chunk ->
-                    val batch = db!!.batch()
-                    chunk.forEach { batch.delete(it.reference) }
-                    batch.commit().await()
-                }
-                signOut()
-            } catch (e: CancellationException) {
-                throw e
-            } catch (e: Exception) {
-                Log.w(TAG, "delete cloud data failed", e)
-                _error.value = AccountError.FAILED
-                startSync(uid)
+        try {
+            results(user.uid).get().await().documents.chunked(400).forEach { chunk ->
+                val batch = db!!.batch()
+                chunk.forEach { batch.delete(it.reference) }
+                batch.commit().await()
             }
+            try {
+                user.delete().await()
+            } catch (e: FirebaseAuthRecentLoginRequiredException) {
+                val idToken = googleIdToken(activityContext, clientId)
+                user.reauthenticate(GoogleAuthProvider.getCredential(idToken, null)).await()
+                user.delete().await()
+            }
+            runCatching { CredentialManager.create(app).clearCredentialState(ClearCredentialStateRequest()) }
+            _state.value = AccountState.SignedOut
+        } catch (e: CancellationException) {
+            throw e
+        } catch (e: GetCredentialCancellationException) {
+            startSync(user.uid) // the user backed out of re-confirming; nothing was deleted from the account
+        } catch (e: Exception) {
+            Log.w(TAG, "delete account failed", e)
+            _error.value = AccountError.FAILED
+            if (auth.currentUser != null) startSync(user.uid)
         }
     }
 

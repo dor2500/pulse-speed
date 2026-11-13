@@ -55,7 +55,7 @@ import androidx.compose.material.icons.rounded.Speed
 import androidx.compose.material3.Badge
 import androidx.compose.material3.BadgedBox
 import androidx.compose.material3.Icon
-import androidx.compose.ui.platform.LocalContext
+import androidx.activity.compose.LocalActivity
 import android.app.Activity
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
@@ -128,7 +128,7 @@ private fun AppRoot(vm: MainViewModel) {
             onDismiss = vm::closeServerPicker,
         )
     }
-    val activity = LocalContext.current as? Activity
+    val activity = LocalActivity.current
     var tab by rememberSaveable { mutableIntStateOf(0) }
 
     Scaffold(
@@ -213,7 +213,7 @@ private fun AppRoot(vm: MainViewModel) {
                     accountError = accountError,
                     onSignIn = { activity?.let(vm::signIn) },
                     onSignOut = vm.cloud::signOut,
-                    onDeleteCloud = vm.cloud::deleteCloudData,
+                    onDeleteCloud = { activity?.let(vm::deleteAccount) },
                     contentPadding = padding,
                 )
             }
