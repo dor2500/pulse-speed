@@ -185,7 +185,8 @@ private fun SyncLine(account: AccountState.SignedIn) {
         SyncStatus.SYNCED -> Triple(
             Icons.Rounded.CloudDone,
             account.lastSyncedAt?.let {
-                stringResource(R.string.sync_synced_at, DateUtils.getRelativeTimeSpanString(it, System.currentTimeMillis(), DateUtils.MINUTE_IN_MILLIS))
+                if (System.currentTimeMillis() - it < DateUtils.MINUTE_IN_MILLIS) stringResource(R.string.sync_synced_now)
+                else stringResource(R.string.sync_synced_at, DateUtils.getRelativeTimeSpanString(it, System.currentTimeMillis(), DateUtils.MINUTE_IN_MILLIS))
             } ?: stringResource(R.string.sync_synced),
             scheme.primary,
         )

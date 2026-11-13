@@ -86,7 +86,7 @@ Both builds use the same package name, `com.dorp.pulse`, and the same signing ke
 - **Not collected:** location, contacts, photos, files, messages, financial or health data.
 - Speed test servers see the user's IP address as part of the test. That's traffic to a third-party service the user picks, not data Pulse collects.
 
-If you publish **without** Firebase (no `google-services.json`), sign-in is hidden. Then answer "No data collected".
+Firebase is configured (project `pulse-speed-7d280`, Firestore in me-west1, Tel Aviv), so builds made with `app/google-services.json` include sign-in and the answers above apply. If you publish **without** Firebase (no `google-services.json`), sign-in is hidden. Then answer "No data collected".
 
 ## Android TV (optional)
 

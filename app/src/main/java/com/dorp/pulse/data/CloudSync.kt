@@ -24,6 +24,7 @@ import com.google.firebase.firestore.CollectionReference
 import com.google.firebase.firestore.DocumentSnapshot
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.ListenerRegistration
+import com.google.firebase.firestore.MetadataChanges
 import com.google.firebase.firestore.Query
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
@@ -121,7 +122,9 @@ class CloudSync(private val app: Application, private val history: HistoryStore,
         listener = results(uid)
             .orderBy("t", Query.Direction.DESCENDING)
             .limit(MAX_SYNCED.toLong())
-            .addSnapshotListener { snap, err ->
+            // INCLUDE: also deliver snapshots that only change metadata, i.e. the moment the server
+            // confirms the cached data. Without it the status would stay "offline" when nothing changed.
+            .addSnapshotListener(MetadataChanges.INCLUDE) { snap, err ->
                 if (err != null || snap == null) {
                     Log.w(TAG, "history listener failed", err)
                     setSync(SyncStatus.ERROR)

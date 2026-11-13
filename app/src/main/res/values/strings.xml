@@ -174,4 +174,5 @@
     <string name="dev_unknown">Device</string>
     <string name="share_link">Share link</string>
     <string name="about_privacy">Privacy policy</string>
+    <string name="sync_synced_now">Synced just now</string>
 </resources>
