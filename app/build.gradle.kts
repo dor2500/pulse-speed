@@ -4,6 +4,10 @@ plugins {
     id("org.jetbrains.kotlin.plugin.compose")
 }
 
+// Google sign-in and cloud sync need a Firebase project. Drop its google-services.json into app/
+// (see docs/firebase-setup.md); without it the app builds and runs with sign-in hidden.
+if (file("google-services.json").exists()) apply(plugin = "com.google.gms.google-services")
+
 android {
     namespace = "com.dorp.pulse"
     compileSdk = 36
@@ -12,8 +16,8 @@ android {
         applicationId = "com.dorp.pulse"
         minSdk = 26
         targetSdk = 36
-        versionCode = 9
-        versionName = "1.6.0"
+        versionCode = 10
+        versionName = "1.7.0"
     }
 
     // The release key comes from the environment, or user's local keystore
@@ -36,7 +40,7 @@ android {
         release {
             isMinifyEnabled = true
             isShrinkResources = true
-            proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"))
+            proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
             signingConfig = if (signingConfigs.findByName("release") != null) signingConfigs.getByName("release")
             else signingConfigs.getByName("debug")
         }
@@ -65,4 +69,13 @@ dependencies {
     implementation("androidx.core:core-ktx:1.16.0")
     implementation("androidx.lifecycle:lifecycle-runtime-compose:2.9.1")
     implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.9.1")
+
+    // Google sign-in (Credential Manager) + Firebase Auth / Firestore for history sync
+    implementation(platform("com.google.firebase:firebase-bom:34.0.0"))
+    implementation("com.google.firebase:firebase-auth")
+    implementation("com.google.firebase:firebase-firestore")
+    implementation("androidx.credentials:credentials:1.5.0")
+    implementation("androidx.credentials:credentials-play-services-auth:1.5.0")
+    implementation("com.google.android.libraries.identity.googleid:googleid:1.1.1")
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-play-services:1.10.2")
 }

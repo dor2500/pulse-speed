@@ -1,0 +1,167 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Pulse result</title>
+<meta name="description" content="A speed test result shared from Pulse: download, upload, ping, jitter and bufferbloat.">
+<meta property="og:title" content="Pulse speed test result">
+<meta property="og:description" content="Download, upload, ping, jitter and bufferbloat, shared from the Pulse app.">
+<meta name="theme-color" content="#121318">
+<style>
+  :root {
+    --bg: #f8f9ff; --surface: #eef0f8; --surface-2: #e2e5f0; --text: #191c22; --muted: #5b6070;
+    --primary: #3f5f99; --on-primary: #fff; --tertiary: #7a4f86; --ok: #2f7d4f; --warn: #a3670a; --bad: #b3261e;
+    --line: #d5d9e6;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #111318; --surface: #1c1f26; --surface-2: #262a33; --text: #e3e5ee; --muted: #a4a9b8;
+      --primary: #aac7ff; --on-primary: #0a305f; --tertiary: #e5b5f1; --ok: #7dd8a0; --warn: #f2c06b; --bad: #ffb4ab;
+      --line: #30343e;
+    }
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; background: var(--bg); color: var(--text); }
+  body { font: 16px/1.45 system-ui, -apple-system, "Segoe UI", Roboto, "Noto Sans Hebrew", sans-serif; }
+  main { max-width: 640px; margin: 0 auto; padding: 24px 16px 48px; }
+  header { display: flex; align-items: center; gap: 12px; margin-bottom: 20px; }
+  .logo { width: 40px; height: 40px; border-radius: 14px; background: var(--primary); display: grid; place-items: center; flex: none; }
+  .logo svg { width: 24px; height: 24px; }
+  h1 { font-size: 28px; margin: 0; color: var(--primary); letter-spacing: -0.5px; }
+  .when { color: var(--muted); font-size: 14px; }
+  .card { background: var(--surface); border-radius: 28px 12px 28px 12px; padding: 20px; margin-bottom: 12px; }
+  .hero { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .metric .label { font-size: 13px; color: var(--muted); display: flex; align-items: center; gap: 6px; }
+  .metric .value { font-size: clamp(36px, 11vw, 56px); font-weight: 650; line-height: 1.05; letter-spacing: -1px; }
+  .metric .unit { font-size: 15px; color: var(--muted); font-weight: 500; }
+  .down .value { color: var(--primary); }
+  .up .value { color: var(--tertiary); }
+  .grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px 8px; }
+  .grid .value { font-size: 22px; font-weight: 600; }
+  .grid .unit { font-size: 12px; }
+  .grade { display: inline-grid; place-items: center; min-width: 34px; height: 30px; padding: 0 8px; border-radius: 10px; font-weight: 700; font-size: 18px; }
+  .g-ok { background: color-mix(in srgb, var(--ok) 22%, transparent); color: var(--ok); }
+  .g-warn { background: color-mix(in srgb, var(--warn) 22%, transparent); color: var(--warn); }
+  .g-bad { background: color-mix(in srgb, var(--bad) 22%, transparent); color: var(--bad); }
+  h2 { font-size: 14px; color: var(--primary); margin: 0 0 12px; font-weight: 600; }
+  svg.chart { width: 100%; height: 150px; display: block; }
+  .legend { display: flex; gap: 16px; font-size: 13px; color: var(--muted); margin-top: 8px; }
+  .legend i { display: inline-block; width: 14px; height: 6px; border-radius: 3px; margin-inline-end: 6px; vertical-align: middle; }
+  dl { margin: 0; display: grid; grid-template-columns: auto 1fr; gap: 10px 16px; }
+  dt { color: var(--muted); font-size: 14px; }
+  dd { margin: 0; font-size: 14px; overflow-wrap: anywhere; }
+  .cta { display: flex; justify-content: center; margin-top: 20px; }
+  .cta a { background: var(--primary); color: var(--on-primary); text-decoration: none; padding: 14px 24px; border-radius: 999px; font-weight: 600; }
+  .error { text-align: center; padding: 48px 16px; color: var(--muted); }
+  .error strong { display: block; color: var(--text); font-size: 20px; margin-bottom: 8px; }
+  footer { text-align: center; color: var(--muted); font-size: 12px; margin-top: 24px; }
+  footer a { color: inherit; }
+  @media (max-width: 380px) { .grid { grid-template-columns: repeat(2, 1fr); } }
+</style>
+</head>
+<body>
+<main id="app"></main>
+<script>
+(() => {
+  const he = (navigator.language || "").toLowerCase().startsWith("he") || (navigator.language || "").toLowerCase().startsWith("iw");
+  const T = he ? {
+    title: "תוצאת Pulse", down: "הורדה", up: "העלאה", ping: "פינג", jitter: "ג׳יטר", dl: "פינג בהורדה", ul: "פינג בהעלאה",
+    bb: "Bufferbloat", chart: "מהירות לאורך הבדיקה", details: "פרטים", server: "שרת", isp: "ספק", source: "רשת בדיקה",
+    net: "סוג חיבור", wifi: "Wi-Fi", max: "שיא", cta: "הורידו את Pulse", bad: "הקישור הזה פגום או לא שלם.", badHint: "בקשו מהשולח לשתף את הקישור שוב.",
+    nets: { wifi: "Wi-Fi", cellular: "סלולרי", ethernet: "חיבור קווי", vpn: "VPN", other: "אחר" }, footer: "נוצר ב-Pulse. הנתונים נשמרים רק בתוך הקישור."
+  } : {
+    title: "Pulse result", down: "Download", up: "Upload", ping: "Ping", jitter: "Jitter", dl: "Loaded ping ↓", ul: "Loaded ping ↑",
+    bb: "Bufferbloat", chart: "Speed over the test", details: "Details", server: "Server", isp: "Provider", source: "Test network",
+    net: "Connection", wifi: "Wi-Fi", max: "Peak", cta: "Get Pulse", bad: "This link is damaged or incomplete.", badHint: "Ask the sender to share it again.",
+    nets: { wifi: "Wi-Fi", cellular: "Cellular", ethernet: "Ethernet", vpn: "VPN", other: "Other" }, footer: "Made with Pulse. The result lives only inside this link."
+  };
+  if (he) { document.documentElement.lang = "he"; document.documentElement.dir = "rtl"; }
+  document.title = T.title;
+  const app = document.getElementById("app");
+  const SOURCES = { cloudflare: "Cloudflare", ookla: "Ookla (speedtest.net)", fast: "FAST (Netflix)", librespeed: "LibreSpeed" };
+  const esc = s => String(s).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+  const num = v => typeof v === "number" && isFinite(v);
+  const fmt = v => !num(v) ? "—" : v < 10 ? v.toFixed(2) : v < 100 ? v.toFixed(1) : v.toFixed(0);
+  const ms = v => !num(v) ? "—" : v < 10 ? v.toFixed(1) : v.toFixed(0);
+
+  async function decode(hash) {
+    const b64 = hash.replace(/-/g, "+").replace(/_/g, "/");
+    const bin = atob(b64 + "===".slice((b64.length + 3) % 4));
+    const bytes = Uint8Array.from(bin, c => c.charCodeAt(0));
+    const stream = new Blob([bytes]).stream().pipeThrough(new DecompressionStream("deflate-raw"));
+    return JSON.parse(await new Response(stream).text());
+  }
+
+  function chart(ds, us) {
+    const series = [[ds, "var(--primary)"], [us, "var(--tertiary)"]].filter(s => Array.isArray(s[0]) && s[0].length > 1);
+    if (!series.length) return "";
+    const W = 600, H = 150, pad = 8;
+    const peak = Math.max(1, ...series.flatMap(s => s[0].filter(num)));
+    const path = (vals) => vals.map((v, i) => {
+      const x = pad + i * (W - pad * 2) / (vals.length - 1);
+      const y = H - pad - (Math.max(0, v) / peak) * (H - pad * 2);
+      return (i ? "L" : "M") + x.toFixed(1) + " " + y.toFixed(1);
+    }).join(" ");
+    const lines = series.map(([vals, color]) => {
+      const d = path(vals);
+      return `<path d="${d} L${W - pad} ${H - pad} L${pad} ${H - pad} Z" fill="${color}" opacity=".14"/>` +
+             `<path d="${d}" fill="none" stroke="${color}" stroke-width="3" stroke-linejoin="round" stroke-linecap="round"/>`;
+    }).join("");
+    const grid = [0.25, 0.5, 0.75].map(f => `<line x1="${pad}" x2="${W - pad}" y1="${H - pad - f * (H - pad * 2)}" y2="${H - pad - f * (H - pad * 2)}" stroke="var(--line)" stroke-dasharray="4 6"/>`).join("");
+    return `<section class="card"><h2>${T.chart}</h2>
+      <svg class="chart" viewBox="0 0 ${W} ${H}" preserveAspectRatio="none" role="img" aria-label="${T.chart}">${grid}${lines}</svg>
+      <div class="legend">${ds && ds.length > 1 ? `<span><i style="background:var(--primary)"></i>${T.down}</span>` : ""}${us && us.length > 1 ? `<span><i style="background:var(--tertiary)"></i>${T.up}</span>` : ""}
+      <span style="margin-inline-start:auto">${T.max} <bdi>${fmt(peak)} Mbps</bdi></span></div></section>`;
+  }
+
+  function gradeClass(g) { return /^A/.test(g) ? "g-ok" : /^[BC]/.test(g) ? "g-warn" : "g-bad"; }
+
+  function render(r) {
+    const when = num(r.t) ? new Date(r.t * 1000).toLocaleString(he ? "he-IL" : undefined, { dateStyle: "medium", timeStyle: "short" }) : "";
+    const cell = (label, value, unit) => `<div class="metric"><div class="label">${label}</div><div><span class="value">${value}</span> <span class="unit">${unit}</span></div></div>`;
+    const rows = [
+      [T.server, r.srv], [T.isp, r.isp], [T.source, SOURCES[r.src] || r.src],
+      [T.net, (T.nets[r.net] || r.net) + (r.wl ? ` · ${r.wl} Mbps${r.wb ? " · " + r.wb : ""}` : "")],
+    ].filter(([, v]) => v);
+    app.innerHTML = `
+      <header>
+        <div class="logo"><svg viewBox="0 0 24 24" fill="none" stroke="var(--on-primary)" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12h4l2-6 4 12 2-6h6"/></svg></div>
+        <div><h1>Pulse</h1><div class="when">${esc(when)}</div></div>
+      </header>
+      <section class="card hero">
+        <div class="metric down"><div class="label">↓ ${T.down}</div><div><span class="value">${fmt(r.d)}</span> <span class="unit">Mbps</span></div></div>
+        <div class="metric up"><div class="label">↑ ${T.up}</div><div><span class="value">${fmt(r.u)}</span> <span class="unit">Mbps</span></div></div>
+      </section>
+      <section class="card grid">
+        ${cell(T.ping, ms(r.p), "ms")}
+        ${cell(T.jitter, ms(r.j), "ms")}
+        ${r.bb ? `<div class="metric"><div class="label">${T.bb}</div><div><span class="grade ${gradeClass(r.bb)}">${esc(r.bb)}</span></div></div>` : ""}
+        ${num(r.dl) ? cell(T.dl, ms(r.dl), "ms") : ""}
+        ${num(r.ul) ? cell(T.ul, ms(r.ul), "ms") : ""}
+      </section>
+      ${chart(r.ds, r.us)}
+      ${rows.length ? `<section class="card"><h2>${T.details}</h2><dl>${rows.map(([k, v]) => `<dt>${k}</dt><dd>${esc(v)}</dd>`).join("")}</dl></section>` : ""}
+      <div class="cta"><a href="https://github.com/dor2500/pulse-speed/releases/latest">${T.cta}</a></div>
+      <footer>${T.footer}</footer>`;
+  }
+
+  function fail() {
+    app.innerHTML = `<div class="error"><strong>${T.bad}</strong>${T.badHint}<div class="cta"><a href="https://github.com/dor2500/pulse-speed/releases/latest">${T.cta}</a></div></div>`;
+  }
+
+  async function load() {
+    const hash = location.hash.slice(1);
+    if (!hash) return fail();
+    try {
+      const r = await decode(hash);
+      if (!r || r.v !== 1 || !num(r.d)) return fail();
+      render(r);
+    } catch (e) { fail(); }
+  }
+  window.addEventListener("hashchange", load);
+  load();
+})();
+</script>
+</body>
+</html>

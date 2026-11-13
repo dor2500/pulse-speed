@@ -344,7 +344,22 @@ private fun HistoryItem(r: TestResult, unit: SpeedUnit) {
                     ),
                     style = MaterialTheme.typography.labelLarge,
                     color = scheme.onSurfaceVariant,
+                    modifier = Modifier.weight(1f),
                 )
+                val shareTitle = stringResource(R.string.share_link)
+                val summary = stringResource(
+                    R.string.share_text,
+                    "${formatSpeed(r.downloadMbps, unit)} ${unit.label}",
+                    "${formatSpeed(r.uploadMbps, unit)} ${unit.label}",
+                    formatMs(r.pingMs),
+                    formatMs(r.jitterMs),
+                )
+                androidx.compose.material3.IconButton(
+                    onClick = { com.dorp.pulse.data.ShareLink.share(context, summary, com.dorp.pulse.data.ShareLink.build(r), shareTitle) },
+                    modifier = Modifier.size(36.dp),
+                ) {
+                    Icon(Icons.Rounded.Share, shareTitle, Modifier.size(20.dp), tint = scheme.onSurfaceVariant)
+                }
             }
             Spacer(Modifier.height(6.dp))
             // Download is the hero number.

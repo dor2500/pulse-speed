@@ -50,6 +50,10 @@ It measures ping, jitter, download, upload and **bufferbloat / loaded latency** 
 - **Morphing gauge**: an organic four-petal shape that breathes, swells and spins faster with live speed, carries progress on an organic ring, and morphs into a capsule with the final result
 - **Expanding cards**: the card for the running phase springs larger and lifts while its test runs
 - **Four test networks**: Cloudflare, Ookla's speedtest.net servers, Netflix's FAST servers and LibreSpeed community servers, picked per test
+- **Ping**: ICMP, TCP or DNS pings to your router, your network's DNS, public resolvers (1.1.1.1, 8.8.8.8, Quad9, OpenDNS) or any host, with live latency bars, jitter and packet loss
+- **Network scan**: find every device on your Wi-Fi (router, phones, computers, TVs, printers, speakers) with names and latency; tap one to ping it
+- **Share links**: share any result as a link to a full result page; the data lives only in the link
+- **Cloud sync** (optional): sign in with Google to back up history and sync it across devices ([setup](docs/firebase-setup.md))
 - **Server picker**: like Speedtest, choose a specific Ookla, FAST or LibreSpeed server (with search, distance and live ping) or leave it on Automatic
 - **Stop any time**: a Stop button ends the test instantly and discards the partial run
 - **Ping and jitter**, measured over a warm connection with server processing time subtracted
