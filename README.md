@@ -9,22 +9,33 @@ It measures ping, jitter, download, upload and **bufferbloat / loaded latency** 
   <img src="docs/screenshots/result.png" width="22%" />
   <img src="docs/screenshots/history.png" width="22%" />
 </p>
+<p align="center">
+  <img src="docs/screenshots/ping.png" width="22%" />
+  <img src="docs/screenshots/scan.png" width="22%" />
+  <img src="docs/screenshots/servers.png" width="22%" />
+  <img src="docs/screenshots/hebrew.png" width="22%" />
+</p>
+
+**Try it in your browser:** <https://dor2500.github.io/pulse-speed/app/>, the same interface as the Android app (speed test, ping, history, share links). Ookla, FAST, LibreSpeed, ICMP ping and the network scan need the Android app, because browsers block them.
 
 ## Downloads
 
 | Platform | Package | Description |
 |:---|:---|:---|
-| **Android / Android TV / Fire TV** | [`Pulse-v1.5.0.apk`](https://github.com/dor2500/pulse-speed/releases/latest) | Android 8.0+ APK with Leanback TV launcher banner & Material You |
-| **Stremio Addon** | [`Pulse-v1.5.0-stremio-addon.zip`](https://github.com/dor2500/pulse-speed/releases/latest) | Stremio Community Addon with `stremio://` protocol support |
-| **LG webOS Smart TV** | [`Pulse-v1.5.0-webos.ipk`](https://github.com/dor2500/pulse-speed/releases/latest) | LG Smart TV `.ipk` package with TV remote & Magic Remote support |
-| **Samsung Smart TV (Tizen)** | [`Pulse-v1.5.0-tizen.wgt`](https://github.com/dor2500/pulse-speed/releases/latest) | Samsung Tizen TV widget package (`.wgt`) |
-| **Kodi Media Center** | [`Pulse-v1.5.0-kodi-addon.zip`](https://github.com/dor2500/pulse-speed/releases/latest) | Kodi Python addon (`plugin.program.pulsespeed`) |
-| **Linux (Debian / Ubuntu / Pi)** | [`pulse_1.5.0_all.deb`](https://github.com/dor2500/pulse-speed/releases/latest) | Native Debian/Ubuntu package with app launcher |
-| **Linux (Tarball)** | [`Pulse-v1.5.0-linux.tar.gz`](https://github.com/dor2500/pulse-speed/releases/latest) | Universal portable Linux archive |
-| **Windows Desktop** | [`Pulse.exe`](https://github.com/dor2500/pulse-speed/releases/latest) / [`.zip`](https://github.com/dor2500/pulse-speed/releases/latest) | Standalone portable executable (no install required, 90 KB) |
-| **macOS Desktop** | [`Pulse-v1.5.0-mac.zip`](https://github.com/dor2500/pulse-speed/releases/latest) | Standalone `Pulse.app` bundle for Mac |
-| **Universal CLI** | [`pulse-cli.py`](https://github.com/dor2500/pulse-speed/releases/latest) | Zero-dependency command-line speed tester |
-| **Web Standalone** | [`Pulse-v1.5.0-web.zip`](https://github.com/dor2500/pulse-speed/releases/latest) | Standalone HTML5 web client |
+| **Android / Android TV / Fire TV** | [`Pulse-v1.7.0.apk`](https://github.com/dor2500/pulse-speed/releases/latest) | Android 8.0+ APK with Leanback TV launcher banner & Material You |
+| **Web (no install)** | [Open Pulse in your browser](https://dor2500.github.io/pulse-speed/app/) | Same design as the app; Cloudflare speed test, HTTPS ping, history, share links |
+| **Web (self-hosted)** | [`Pulse-v1.7.0-web.zip`](https://github.com/dor2500/pulse-speed/releases/latest) | The web app as static files, for any web server |
+| **Stremio Addon** | [`Pulse-v1.5.2-stremio-addon.zip`](https://github.com/dor2500/pulse-speed/releases/tag/v1.5.2) | Stremio Community Addon with `stremio://` protocol support |
+| **LG webOS Smart TV** | [`Pulse-v1.5.2-webos.ipk`](https://github.com/dor2500/pulse-speed/releases/tag/v1.5.2) | LG Smart TV `.ipk` package with TV remote & Magic Remote support |
+| **Samsung Smart TV (Tizen)** | [`Pulse-v1.5.2-tizen.wgt`](https://github.com/dor2500/pulse-speed/releases/tag/v1.5.2) | Samsung Tizen TV widget package (`.wgt`) |
+| **Kodi Media Center** | [`Pulse-v1.5.2-kodi-addon.zip`](https://github.com/dor2500/pulse-speed/releases/tag/v1.5.2) | Kodi Python addon (`plugin.program.pulsespeed`) |
+| **Linux (Debian / Ubuntu / Pi)** | [`pulse_1.5.2_all.deb`](https://github.com/dor2500/pulse-speed/releases/tag/v1.5.2) | Native Debian/Ubuntu package with app launcher |
+| **Linux (Tarball)** | [`Pulse-v1.5.2-linux.tar.gz`](https://github.com/dor2500/pulse-speed/releases/tag/v1.5.2) | Universal portable Linux archive |
+| **Windows Desktop** | [`Pulse.exe`](https://github.com/dor2500/pulse-speed/releases/tag/v1.5.2) / [`.zip`](https://github.com/dor2500/pulse-speed/releases/tag/v1.5.2) | Standalone portable executable (no install required, 90 KB) |
+| **macOS Desktop** | [`Pulse-v1.5.2-mac.zip`](https://github.com/dor2500/pulse-speed/releases/tag/v1.5.2) | Standalone `Pulse.app` bundle for Mac |
+| **Universal CLI** | [`pulse-cli.py`](https://github.com/dor2500/pulse-speed/releases/tag/v1.5.2) | Zero-dependency command-line speed tester |
+
+The TV, desktop and CLI builds are still at v1.5.2; Ping, network scan, share links and cloud sync are new in the Android app (v1.7.0).
 
 <div dir="rtl">
 
@@ -40,6 +51,8 @@ It measures ping, jitter, download, upload and **bufferbloat / loaded latency** 
 היא מודדת פינג, ג׳יטר, הורדה, העלאה, **מדד Bufferbloat (פינג בעומס)**, אבחון רשת Wi-Fi, שמירה וייצוא היסטוריה ל-CSV ותמיכה מלאה בעברית.
 
 **הורדות:** הורידו את הגרסה המתאימה לכם מ[דף הגרסאות הרשמי ב-GitHub](https://github.com/dor2500/pulse-speed/releases/latest).
+
+**בלי התקנה:** אפשר לנסות את Pulse ישר בדפדפן, עם אותו ממשק כמו באפליקציה: <https://dor2500.github.io/pulse-speed/app/>
 
 </div>
 

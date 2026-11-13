@@ -51,8 +51,9 @@
   dl { margin: 0; display: grid; grid-template-columns: auto 1fr; gap: 10px 16px; }
   dt { color: var(--muted); font-size: 14px; }
   dd { margin: 0; font-size: 14px; overflow-wrap: anywhere; }
-  .cta { display: flex; justify-content: center; margin-top: 20px; }
+  .cta { display: flex; justify-content: center; flex-wrap: wrap; gap: 10px; margin-top: 20px; }
   .cta a { background: var(--primary); color: var(--on-primary); text-decoration: none; padding: 14px 24px; border-radius: 999px; font-weight: 600; }
+  .cta a.ghost { background: transparent; color: var(--primary); border: 1px solid var(--line); }
   .error { text-align: center; padding: 48px 16px; color: var(--muted); }
   .error strong { display: block; color: var(--text); font-size: 20px; margin-bottom: 8px; }
   footer { text-align: center; color: var(--muted); font-size: 12px; margin-top: 24px; }
@@ -69,12 +70,12 @@
     title: "תוצאת Pulse", down: "הורדה", up: "העלאה", ping: "פינג", jitter: "ג׳יטר", dl: "פינג בהורדה", ul: "פינג בהעלאה",
     bb: "Bufferbloat", chart: "מהירות לאורך הבדיקה", details: "פרטים", server: "שרת", isp: "ספק", source: "רשת בדיקה",
     net: "סוג חיבור", wifi: "Wi-Fi", max: "שיא", cta: "הורידו את Pulse", bad: "הקישור הזה פגום או לא שלם.", badHint: "בקשו מהשולח לשתף את הקישור שוב.",
-    nets: { wifi: "Wi-Fi", cellular: "סלולרי", ethernet: "חיבור קווי", vpn: "VPN", other: "אחר" }, footer: "נוצר ב-Pulse. הנתונים נשמרים רק בתוך הקישור."
+    nets: { wifi: "Wi-Fi", cellular: "סלולרי", ethernet: "חיבור קווי", vpn: "VPN", other: "אחר", web: "דפדפן" }, run: "בדיקה בדפדפן", footer: "נוצר ב-Pulse. הנתונים נשמרים רק בתוך הקישור."
   } : {
     title: "Pulse result", down: "Download", up: "Upload", ping: "Ping", jitter: "Jitter", dl: "Loaded ping ↓", ul: "Loaded ping ↑",
     bb: "Bufferbloat", chart: "Speed over the test", details: "Details", server: "Server", isp: "Provider", source: "Test network",
     net: "Connection", wifi: "Wi-Fi", max: "Peak", cta: "Get Pulse", bad: "This link is damaged or incomplete.", badHint: "Ask the sender to share it again.",
-    nets: { wifi: "Wi-Fi", cellular: "Cellular", ethernet: "Ethernet", vpn: "VPN", other: "Other" }, footer: "Made with Pulse. The result lives only inside this link."
+    nets: { wifi: "Wi-Fi", cellular: "Cellular", ethernet: "Ethernet", vpn: "VPN", other: "Other", web: "Browser" }, run: "Test in your browser", footer: "Made with Pulse. The result lives only inside this link."
   };
   if (he) { document.documentElement.lang = "he"; document.documentElement.dir = "rtl"; }
   document.title = T.title;
@@ -142,7 +143,7 @@
       </section>
       ${chart(r.ds, r.us)}
       ${rows.length ? `<section class="card"><h2>${T.details}</h2><dl>${rows.map(([k, v]) => `<dt>${k}</dt><dd>${esc(v)}</dd>`).join("")}</dl></section>` : ""}
-      <div class="cta"><a href="https://github.com/dor2500/pulse-speed/releases/latest">${T.cta}</a></div>
+      <div class="cta"><a href="../app/">${T.run}</a><a class="ghost" href="https://github.com/dor2500/pulse-speed/releases/latest">${T.cta}</a></div>
       <footer>${T.footer}</footer>`;
   }
 
