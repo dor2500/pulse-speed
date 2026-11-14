@@ -122,6 +122,7 @@ fun TestScreen(
     onOpenServers: () -> Unit,
     onStart: () -> Unit,
     onCancel: () -> Unit,
+    onDetails: () -> Unit,
     contentPadding: PaddingValues,
 ) {
     val haptics = LocalHapticFeedback.current
@@ -159,6 +160,11 @@ fun TestScreen(
         )
 
         ActionRow(state, unit, onStart, onCancel)
+        if (state.phase == Phase.DONE && state.resultTime != null) {
+            TextButton(onClick = onDetails) {
+                Text(stringResource(R.string.details_open), style = MaterialTheme.typography.titleSmall)
+            }
+        }
 
         AnimatedVisibility(state.error != null, enter = fadeIn() + expandVertically(), exit = fadeOut() + shrinkVertically()) {
             ErrorCard(state.error ?: TestError.SERVER)
@@ -484,7 +490,7 @@ private fun Legend(color: Color, text: String) {
 }
 
 @Composable
-private fun SparkLine(samples: List<Float>, peak: Float, color: Color, modifier: Modifier) {
+internal fun SparkLine(samples: List<Float>, peak: Float, color: Color, modifier: Modifier) {
     if (samples.size < 2) return
     Canvas(modifier) {
         val stepX = size.width / (samples.size - 1)
@@ -691,4 +697,13 @@ fun TestSource.description(): Int = when (this) {
     TestSource.OOKLA -> R.string.src_ookla_desc
     TestSource.FAST -> R.string.src_fast_desc
     TestSource.LIBRESPEED -> R.string.src_libre_desc
+    TestSource.APPLE -> R.string.src_apple_desc
+    TestSource.MLAB -> R.string.src_mlab_desc
+}
+
+/** Shown in the server row for sources that always pick their own nearest server. */
+fun TestSource.autoNote(): Int = when (this) {
+    TestSource.APPLE -> R.string.server_apple_note
+    TestSource.MLAB -> R.string.server_mlab_note
+    else -> R.string.server_cloudflare_note
 }

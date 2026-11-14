@@ -83,9 +83,11 @@ fun HistoryScreen(
     onDelete: (Long) -> Unit,
     onClear: () -> Unit,
     onExportCsv: () -> Unit,
+    onOpen: (Long) -> Unit,
     contentPadding: PaddingValues,
 ) {
     var confirmClear by remember { mutableStateOf(false) }
+    var confirmDelete by remember { mutableStateOf<Long?>(null) }
     var filter by rememberSaveable { mutableStateOf(HistoryFilter.ALL) }
     val shown = when (filter) {
         HistoryFilter.ALL -> items
@@ -104,6 +106,21 @@ fun HistoryScreen(
             },
             dismissButton = {
                 TextButton(onClick = { confirmClear = false }) { Text(stringResource(R.string.cancel)) }
+            },
+        )
+    }
+
+    confirmDelete?.let { time ->
+        AlertDialog(
+            onDismissRequest = { confirmDelete = null },
+            icon = { Icon(Icons.Rounded.Delete, null) },
+            title = { Text(stringResource(R.string.delete_result_title)) },
+            text = { Text(stringResource(R.string.delete_result_body)) },
+            confirmButton = {
+                TextButton(onClick = { confirmDelete = null; onDelete(time) }) { Text(stringResource(R.string.delete)) }
+            },
+            dismissButton = {
+                TextButton(onClick = { confirmDelete = null }) { Text(stringResource(R.string.cancel)) }
             },
         )
     }
@@ -146,31 +163,10 @@ fun HistoryScreen(
             return@LazyColumn
         }
         item { SummaryCard(shown, unit) }
+        // No swipe-to-delete: deleting needs the explicit button (and a confirmation) on each card.
         items(shown, key = { it.time }) { r ->
-            val state = rememberSwipeToDismissBoxState(confirmValueChange = {
-                if (it != SwipeToDismissBoxValue.Settled) {
-                    onDelete(r.time)
-                    true
-                } else false
-            })
-            SwipeToDismissBox(
-                state = state,
-                modifier = Modifier.animateItem(),
-                backgroundContent = {
-                    Box(
-                        Modifier
-                            .fillMaxSize()
-                            .clip(RoundedCornerShape(24.dp))
-                            .background(MaterialTheme.colorScheme.errorContainer)
-                            .padding(horizontal = 24.dp),
-                        contentAlignment = if (state.dismissDirection == SwipeToDismissBoxValue.StartToEnd)
-                            Alignment.CenterStart else Alignment.CenterEnd,
-                    ) {
-                        Icon(Icons.Rounded.Delete, stringResource(R.string.delete), tint = MaterialTheme.colorScheme.onErrorContainer)
-                    }
-                },
-            ) {
-                HistoryItem(r, unit)
+            Box(Modifier.animateItem()) {
+                HistoryItem(r, unit, onOpen = { onOpen(r.time) }, onDelete = { confirmDelete = r.time })
             }
         }
     }
@@ -329,10 +325,10 @@ private fun Stat(label: String, value: String, unit: String, modifier: Modifier)
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
-private fun HistoryItem(r: TestResult, unit: SpeedUnit) {
+private fun HistoryItem(r: TestResult, unit: SpeedUnit, onOpen: () -> Unit, onDelete: () -> Unit) {
     val context = LocalContext.current
     val scheme = MaterialTheme.colorScheme
-    Surface(shape = RoundedCornerShape(24.dp), color = scheme.surfaceContainer) {
+    Surface(shape = RoundedCornerShape(24.dp), color = scheme.surfaceContainer, onClick = onOpen) {
         Column(Modifier.fillMaxWidth().padding(horizontal = 20.dp, vertical = 16.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Icon(r.network.icon(), null, Modifier.size(16.dp), tint = scheme.onSurfaceVariant)
@@ -359,6 +355,9 @@ private fun HistoryItem(r: TestResult, unit: SpeedUnit) {
                     modifier = Modifier.size(36.dp),
                 ) {
                     Icon(Icons.Rounded.Share, shareTitle, Modifier.size(20.dp), tint = scheme.onSurfaceVariant)
+                }
+                androidx.compose.material3.IconButton(onClick = onDelete, modifier = Modifier.size(36.dp)) {
+                    Icon(Icons.Rounded.Delete, stringResource(R.string.delete), Modifier.size(20.dp), tint = scheme.onSurfaceVariant)
                 }
             }
             Spacer(Modifier.height(6.dp))

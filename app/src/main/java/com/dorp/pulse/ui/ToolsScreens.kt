@@ -32,6 +32,7 @@ import androidx.compose.material.icons.rounded.Dns
 import androidx.compose.material.icons.rounded.Info
 import androidx.compose.material.icons.rounded.Lan
 import androidx.compose.material.icons.rounded.Leaderboard
+import androidx.compose.material.icons.rounded.MonitorHeart
 import androidx.compose.material.icons.rounded.NetworkPing
 import androidx.compose.material.icons.rounded.PersonSearch
 import androidx.compose.material.icons.rounded.PowerSettingsNew
@@ -87,6 +88,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.runtime.getValue
 
 enum class ToolId(val icon: ImageVector, val title: Int, val desc: Int) {
+    STATUS(Icons.Rounded.MonitorHeart, R.string.t_status, R.string.td_status),
     PING(Icons.Rounded.NetworkPing, R.string.tool_ping, R.string.td_ping),
     SCAN(Icons.Rounded.Radar, R.string.tool_devices, R.string.td_scan),
     TRACE(Icons.Rounded.Route, R.string.t_trace, R.string.td_trace),
@@ -130,9 +132,9 @@ private fun ToolTile(t: ToolId, modifier: Modifier, onClick: () -> Unit) {
     Surface(shape = shape, color = scheme.surfaceContainerLow, modifier = modifier.heightIn(min = 132.dp).clip(shape).clickable(onClick = onClick)) {
         Column(Modifier.padding(16.dp)) {
             Box(
-                Modifier.size(44.dp).clip(RoundedCornerShape(14.dp)).background(if (i < 2) scheme.primaryContainer else scheme.secondaryContainer),
+                Modifier.size(44.dp).clip(RoundedCornerShape(14.dp)).background(if (i == 0) scheme.primaryContainer else scheme.secondaryContainer),
                 contentAlignment = Alignment.Center,
-            ) { Icon(t.icon, null, tint = if (i < 2) scheme.onPrimaryContainer else scheme.onSecondaryContainer) }
+            ) { Icon(t.icon, null, tint = if (i == 0) scheme.onPrimaryContainer else scheme.onSecondaryContainer) }
             Spacer(Modifier.height(12.dp))
             Text(stringResource(t.title), style = MaterialTheme.typography.titleMedium, maxLines = 1, overflow = TextOverflow.Ellipsis)
             Text(stringResource(t.desc), style = MaterialTheme.typography.bodySmall, color = scheme.onSurfaceVariant, maxLines = 2, overflow = TextOverflow.Ellipsis)
@@ -158,6 +160,7 @@ fun ToolDetail(tool: ToolId, vm: MainViewModel, onBack: () -> Unit, onPing: (Str
         ToolId.WIFI -> { val s by vm.wifi.state.collectAsStateWithLifecycle(); WifiScreen(s, vm, onBack, contentPadding) }
         ToolId.WOL -> { val s by vm.wol.state.collectAsStateWithLifecycle(); WolScreen(s, vm, onBack, contentPadding) }
         ToolId.WHOIS -> { val s by vm.whois.state.collectAsStateWithLifecycle(); WhoisScreen(s, vm, onBack, contentPadding) }
+        ToolId.STATUS -> { val s by vm.status.state.collectAsStateWithLifecycle(); StatusScreen(s, vm, onBack, contentPadding) }
         ToolId.PING -> Unit
     }
 }

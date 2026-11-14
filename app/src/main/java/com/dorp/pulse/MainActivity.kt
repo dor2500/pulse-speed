@@ -72,6 +72,8 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.dorp.pulse.data.localizedContext
 import com.dorp.pulse.ui.HistoryScreen
 import com.dorp.pulse.ui.PingScreen
+import com.dorp.pulse.ui.ResultDetailsScreen
+import com.dorp.pulse.ui.label
 import com.dorp.pulse.ui.ToolDetail
 import com.dorp.pulse.ui.ToolId
 import com.dorp.pulse.ui.ToolsHub
@@ -122,6 +124,8 @@ private fun AppRoot(vm: MainViewModel) {
     val ping by vm.ping.state.collectAsStateWithLifecycle()
     // The tool open inside the Tools tab (null = the grid). Saved by name so it survives rotation.
     var openToolName by rememberSaveable { mutableStateOf<String?>(null) }
+    // The history result whose details are open (its time key), null = the list.
+    var openResult by rememberSaveable { mutableStateOf<Long?>(null) }
     val openTool = openToolName?.let { n -> ToolId.entries.firstOrNull { it.name == n } }
     val account by vm.cloud.state.collectAsStateWithLifecycle()
     val accountError by vm.cloud.error.collectAsStateWithLifecycle()
@@ -172,6 +176,7 @@ private fun AppRoot(vm: MainViewModel) {
                     onOpenServers = { vm.openServerPicker(settings.source) },
                     onStart = vm::start,
                     onCancel = vm::cancel,
+                    onDetails = { state.resultTime?.let { t -> openResult = t; tab = 2 } },
                     contentPadding = padding,
                 )
                 1 -> {
@@ -194,7 +199,29 @@ private fun AppRoot(vm: MainViewModel) {
                         else -> ToolDetail(openTool, vm, onBack = { openToolName = null }, onPing = pingHost, contentPadding = padding)
                     }
                 }
-                2 -> HistoryScreen(
+                2 -> {
+                    val opened = openResult?.let { t -> history.firstOrNull { it.time == t } }
+                    BackHandler(enabled = opened != null) { openResult = null }
+                    if (opened != null) ResultDetailsScreen(
+                        r = opened,
+                        unit = settings.unit,
+                        onBack = { openResult = null },
+                        onShare = {
+                            activity?.let { a ->
+                                com.dorp.pulse.data.ShareLink.share(
+                                    a,
+                                    a.getString(R.string.share_text,
+                                        "${com.dorp.pulse.ui.formatSpeed(opened.downloadMbps, settings.unit)} ${settings.unit.label}",
+                                        "${com.dorp.pulse.ui.formatSpeed(opened.uploadMbps, settings.unit)} ${settings.unit.label}",
+                                        com.dorp.pulse.ui.formatMs(opened.pingMs), com.dorp.pulse.ui.formatMs(opened.jitterMs)),
+                                    com.dorp.pulse.data.ShareLink.build(opened, opened.details?.downSamples.orEmpty(), opened.details?.upSamples.orEmpty()),
+                                    a.getString(R.string.share_link),
+                                )
+                            }
+                        },
+                        onDelete = { openResult = null; vm.deleteResult(opened.time) },
+                        contentPadding = padding,
+                    ) else HistoryScreen(
                     items = history,
                     unit = settings.unit,
                     onDelete = vm::deleteResult,
@@ -208,8 +235,10 @@ private fun AppRoot(vm: MainViewModel) {
                         }
                         activity?.startActivity(Intent.createChooser(intent, "Export History"))
                     },
+                    onOpen = { openResult = it },
                     contentPadding = padding,
                 )
+                }
                 else -> SettingsScreen(
                     settings = settings,
                     onChange = { transform ->

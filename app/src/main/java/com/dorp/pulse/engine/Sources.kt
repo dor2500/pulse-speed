@@ -18,6 +18,8 @@ enum class TestSource(val title: String, val selectable: Boolean) {
     OOKLA("Ookla", true),
     FAST("FAST", true),
     LIBRESPEED("LibreSpeed", true),
+    APPLE("Apple", false),
+    MLAB("M-Lab", false),
 }
 
 /**
@@ -49,6 +51,8 @@ internal object Sources {
                 TestSource.OOKLA -> ookla(engine, choice)
                 TestSource.FAST -> fast(engine, choice)
                 TestSource.LIBRESPEED -> libreSpeed(engine, choice)
+                TestSource.APPLE -> apple(engine)
+                TestSource.MLAB -> mlab(engine)
             }
         }
 
@@ -60,6 +64,7 @@ internal object Sources {
                 TestSource.OOKLA -> ooklaServers(engine, limit = 40, query = query).map(::ooklaOption)
                 TestSource.FAST -> fastOptions(engine)
                 TestSource.LIBRESPEED -> libreServers(engine).map(::libreOption)
+                TestSource.APPLE, TestSource.MLAB -> emptyList()
             }
             if (query.isBlank() || source == TestSource.OOKLA) all
             else all.filter { (it.name + " " + it.location).contains(query.trim(), ignoreCase = true) }
@@ -88,6 +93,61 @@ internal object Sources {
                 download = { "$base/__down?bytes=50000000&r=${nonce()}" },
                 upload = { "$base/__up?r=${nonce()}" },
                 uploadChunk = 16_000_000L,
+            ),
+        )
+    }
+
+    // ---- Apple (the CDN behind macOS/iOS networkQuality) ---------------------------------------
+
+    private fun apple(engine: SpeedTestEngine): PreparedTest {
+        val cfg = JSONObject(engine.get("https://mensura.cdn-apple.com/api/v1/gm/config"))
+        val urls = cfg.getJSONObject("urls")
+        // "defra3-edge-bx-009.aaplimg.com" -> DE + FRA (UN/LOCODE country and city)
+        val edge = cfg.optString("test_endpoint").substringBefore('-')
+        val country = edge.take(2).uppercase()
+        val city = edge.drop(2).take(3).uppercase()
+        val where = APPLE_CITIES[city]?.let { "$it, $country" } ?: listOf(city, country).filter { it.isNotBlank() }.joinToString(", ")
+        val meta = engine.clientMeta()
+        return PreparedTest(
+            ServerInfo(
+                ip = meta?.optString("clientIp").orEmpty(),
+                isp = meta?.optString("asOrganization").orEmpty(),
+                serverLabel = listOf("Apple", where).filter { it.isNotBlank() }.joinToString(" · "),
+                protocol = "HTTP/2",
+            ),
+            Endpoints(
+                ping = urls.getString("small_https_download_url"),
+                download = { urls.getString("large_https_download_url") },
+                upload = { urls.getString("https_upload_url") },
+                uploadChunk = 8_000_000L,
+            ),
+        )
+    }
+
+    // ---- M-Lab (Measurement Lab, NDT7) -----------------------------------------------------
+
+    private fun mlab(engine: SpeedTestEngine): PreparedTest {
+        val res = JSONObject(engine.get("https://locate.measurementlab.net/v2/nearest/ndt/ndt7")).getJSONArray("results")
+        if (res.length() == 0) throw IOException("No M-Lab servers")
+        val s = res.getJSONObject(0)
+        val urls = s.getJSONObject("urls")
+        val loc = s.optJSONObject("location")
+        val where = place(loc?.optString("city"), loc?.optString("country"))
+        val meta = engine.clientMeta()
+        return PreparedTest(
+            ServerInfo(
+                ip = meta?.optString("clientIp").orEmpty(),
+                isp = meta?.optString("asOrganization").orEmpty(),
+                serverLabel = listOf("M-Lab", where).filter { it.isNotBlank() }.joinToString(" · "),
+                protocol = "WebSocket (NDT7)",
+            ),
+            Endpoints(
+                ping = "", download = { "" }, upload = { "" },
+                ndt7 = Ndt7Target(
+                    host = s.getString("hostname"),
+                    downloadUrl = urls.getString("wss:///ndt/v7/download"),
+                    uploadUrl = urls.getString("wss:///ndt/v7/upload"),
+                ),
             ),
         )
     }
@@ -272,6 +332,13 @@ internal object Sources {
     /** Public token that fast.com's own web app sends. */
     private const val FAST_TOKEN = "YXNkZmFzZGxmbnNkYWZoYXNkZmhrYWxm"
 }
+
+private val APPLE_CITIES = mapOf(
+    "FRA" to "Frankfurt", "TLV" to "Tel Aviv", "AMS" to "Amsterdam", "LON" to "London", "PAR" to "Paris",
+    "MIL" to "Milan", "MRS" to "Marseille", "VIE" to "Vienna", "WAW" to "Warsaw", "MAD" to "Madrid",
+    "STO" to "Stockholm", "ZRH" to "Zurich", "DUS" to "Düsseldorf", "MUC" to "Munich", "BER" to "Berlin",
+    "NYC" to "New York", "LAX" to "Los Angeles", "SJC" to "San Jose", "CHI" to "Chicago", "DFW" to "Dallas",
+)
 
 private val COLO_NAMES = mapOf(
     "TLV" to "Tel Aviv", "HFA" to "Haifa", "AMM" to "Amman", "LCA" to "Larnaca", "ATH" to "Athens",
