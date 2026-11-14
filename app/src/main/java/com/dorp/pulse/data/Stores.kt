@@ -92,6 +92,8 @@ data class TestResult(
     val downLoadedPingMs: Double? = null,
     val upLoadedPingMs: Double? = null,
     val bufferbloatGrade: String? = null,
+    /** Full breakdown for the details screen; null for results saved before v1.9. */
+    val details: TestDetails? = null,
 )
 
 class HistoryStore(context: Context) {
@@ -104,7 +106,13 @@ class HistoryStore(context: Context) {
     fun clear() = save(emptyList())
     /** Replaces the whole list, newest first (used by cloud sync). */
     fun replaceAll(list: List<TestResult>) {
-        val merged = list.distinctBy { it.time }.sortedByDescending { it.time }.take(MAX_ITEMS)
+        // The cloud copy never carries IP addresses; keep the ones this device recorded.
+        val local = _items.value.associateBy { it.time }
+        val withIps = list.map { r ->
+            val mine = local[r.time]?.details ?: return@map r
+            r.copy(details = (r.details ?: mine).copy(externalIp = mine.externalIp, localIp = mine.localIp))
+        }
+        val merged = withIps.distinctBy { it.time }.sortedByDescending { it.time }.take(MAX_ITEMS)
         if (merged != _items.value) save(merged)
     }
 
@@ -140,6 +148,7 @@ class HistoryStore(context: Context) {
             r.downLoadedPingMs?.let { obj.put("dlp", it) }
             r.upLoadedPingMs?.let { obj.put("ulp", it) }
             r.bufferbloatGrade?.let { obj.put("bbg", it) }
+            r.details?.let { obj.put("x", it.toJson()) }
             arr.put(obj)
         }
         prefs.edit().putString("items", arr.toString()).apply()
@@ -162,6 +171,7 @@ class HistoryStore(context: Context) {
                 downLoadedPingMs = if (o.has("dlp")) o.getDouble("dlp") else null,
                 upLoadedPingMs = if (o.has("ulp")) o.getDouble("ulp") else null,
                 bufferbloatGrade = if (o.has("bbg")) o.getString("bbg") else null,
+                details = TestDetails.fromJson(o.optJSONObject("x")),
             )
         }
     }.getOrDefault(emptyList())

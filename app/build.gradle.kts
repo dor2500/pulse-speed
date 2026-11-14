@@ -16,8 +16,8 @@ android {
         applicationId = "com.dorp.pulse"
         minSdk = 26
         targetSdk = 36
-        versionCode = 13
-        versionName = "1.8.0"
+        versionCode = 14
+        versionName = "1.9.0"
     }
 
     // "github" is the sideloaded build that updates itself from GitHub Releases.
@@ -100,4 +100,7 @@ dependencies {
     implementation("androidx.credentials:credentials-play-services-auth:1.5.0")
     implementation("com.google.android.libraries.identity.googleid:googleid:1.1.1")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-play-services:1.10.2")
+
+    // WebSocket client for M-Lab's NDT7 test
+    implementation("com.squareup.okhttp3:okhttp:4.12.0")
 }

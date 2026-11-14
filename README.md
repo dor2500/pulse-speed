@@ -16,6 +16,12 @@ It measures ping, jitter, download, upload and **bufferbloat / loaded latency** 
   <img src="docs/screenshots/servers.png" width="22%" />
   <img src="docs/screenshots/hebrew.png" width="22%" />
 </p>
+<p align="center">
+  <img src="docs/screenshots/details.png" width="22%" />
+  <img src="docs/screenshots/status.png" width="22%" />
+  <img src="docs/screenshots/scan.png" width="22%" />
+  <img src="docs/screenshots/servers.png" width="22%" />
+</p>
 
 **Try it in your browser:** <https://dor2500.github.io/pulse-speed/app/>, the same interface as the Android app (speed test, ping, history, share links). Ookla, FAST, LibreSpeed, ICMP ping and the network scan need the Android app, because browsers block them.
 
@@ -66,6 +72,9 @@ The TV, desktop and CLI builds are still at v1.5.2; Ping, network scan, share li
 - **Four test networks**: Cloudflare, Ookla's speedtest.net servers, Netflix's FAST servers and LibreSpeed community servers, picked per test
 - **Ping**: ICMP, TCP or DNS pings to your router, your network's DNS, public resolvers (1.1.1.1, 8.8.8.8, Quad9, OpenDNS) or any host, with live latency bars, jitter and packet loss
 - **Network scan**: find every device on your Wi-Fi (router, phones, computers, TVs, printers, speakers) with names and latency; tap one to ping it
+- **Full test details**: data used, ping idle and under load (low / high / jitter), packet loss, connection, device and IPs (IPs stay on the device)
+- **Service status**: Downdetector-style board for 34 services (WhatsApp, Bezeq, YouTube…) with live checks, official status pages and anonymous user reports
+- **Six test networks**: Cloudflare, Ookla, FAST, LibreSpeed, Apple and M-Lab (NDT7)
 - **Network tools**: traceroute, DNS lookup (A/AAAA/MX/TXT/NS/SOA/PTR), DNS benchmark, port scanner, network info (public and local IPs, gateway, DNS, MTU), Wi-Fi analyzer with a channel chart, Wake-on-LAN and whois / IP lookup
 - **Share links**: share any result as a link to a full result page; the data lives only in the link
 - **Privacy**: no ads, no tracking ([privacy policy](https://dor2500.github.io/pulse-speed/privacy/)); publishing notes in [docs/play-store.md](docs/play-store.md)

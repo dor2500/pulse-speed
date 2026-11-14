@@ -85,7 +85,7 @@ fun ServerRow(source: TestSource, choice: ServerOption?, enabled: Boolean, onOpe
                 )
                 Text(
                     when {
-                        !source.selectable -> stringResource(R.string.server_cloudflare_note)
+                        !source.selectable -> stringResource(source.autoNote())
                         choice == null -> stringResource(R.string.server_auto_long)
                         else -> listOf(choice.name, choice.location).filter { it.isNotBlank() }.distinct().joinToString(" · ")
                     },

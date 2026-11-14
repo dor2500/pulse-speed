@@ -301,3 +301,103 @@ class WhoisController(scope: CoroutineScope) : ToolController<WhoisState>(WhoisS
     override fun onError(id: Int, e: Exception) { if (id == runId) _state.update { it.copy(error = true) } }
     override fun onFinished(id: Int) { if (id == runId) _state.update { it.copy(loading = false) } }
 }
+
+// ---------------------------------------------------------------- Service status (outages)
+
+enum class StatusLevel { CHECKING, OK, ISSUES, DOWN }
+
+data class ServiceState(
+    val live: com.dorp.pulse.engine.LiveCheck? = null,
+    val official: com.dorp.pulse.engine.OfficialStatus? = null,
+    /** Pulse users' reports in the last hour; null when reports are unavailable. */
+    val reports: Long? = null,
+) {
+    val level: StatusLevel get() {
+        val l = live ?: return StatusLevel.CHECKING
+        val r = reports ?: 0
+        return when {
+            !l.reachable || official?.level == com.dorp.pulse.engine.OfficialLevel.MAJOR || r >= 5 -> StatusLevel.DOWN
+            official?.level == com.dorp.pulse.engine.OfficialLevel.MINOR || r >= 2 || (l.ms ?: 0.0) > 3000 -> StatusLevel.ISSUES
+            else -> StatusLevel.OK
+        }
+    }
+}
+
+data class StatusUiState(
+    val query: String = "",
+    val services: Map<String, ServiceState> = emptyMap(),
+    val refreshing: Boolean = false,
+    val reportsAvailable: Boolean = false,
+    val checkedAt: Long? = null,
+    val open: String? = null,
+    /** Report times for the open service over 24 h; null while loading or unavailable. */
+    val history: List<Long>? = null,
+    val reporting: Boolean = false,
+    val reported: Set<String> = emptySet(),
+    val reportFailed: Boolean = false,
+)
+
+class StatusController(private val cloud: com.dorp.pulse.data.CloudSync, scope: CoroutineScope) :
+    ToolController<StatusUiState>(StatusUiState(reportsAvailable = cloud.reportsAvailable), scope) {
+
+    fun setQuery(v: String) = _state.update { it.copy(query = v) }
+
+    fun refresh() {
+        if (_state.value.refreshing) return
+        _state.update { it.copy(refreshing = true) }
+        launchJob { id ->
+            val gate = kotlinx.coroutines.sync.Semaphore(8)
+            val since = System.currentTimeMillis() - 3_600_000
+            coroutineScope {
+                com.dorp.pulse.engine.Services.ALL.map { s ->
+                    async {
+                        gate.acquire()
+                        try {
+                            val live = com.dorp.pulse.engine.Services.check(s)
+                            val off = com.dorp.pulse.engine.Services.official(s)
+                            val rep = cloud.reportCount(s.id, since)
+                            if (id == runId) _state.update { st -> st.copy(services = st.services + (s.id to ServiceState(live, off, rep))) }
+                        } finally { gate.release() }
+                    }
+                }.awaitAll()
+            }
+            if (id == runId) _state.update { it.copy(checkedAt = System.currentTimeMillis()) }
+        }
+    }
+    override fun onFinished(id: Int) { if (id == runId) _state.update { it.copy(refreshing = false) } }
+
+    fun open(serviceId: String?) {
+        _state.update { it.copy(open = serviceId, history = null, reportFailed = false) }
+        if (serviceId == null) return
+        scope.launch {
+            val times = cloud.reportTimes(serviceId, System.currentTimeMillis() - 24 * 3_600_000L)
+            _state.update { if (it.open == serviceId) it.copy(history = times ?: emptyList()) else it }
+        }
+        // Re-check just this one so the detail screen is fresh.
+        scope.launch {
+            val s = com.dorp.pulse.engine.Services.byId(serviceId) ?: return@launch
+            val live = com.dorp.pulse.engine.Services.check(s)
+            val off = com.dorp.pulse.engine.Services.official(s)
+            val rep = cloud.reportCount(s.id, System.currentTimeMillis() - 3_600_000)
+            _state.update { st -> st.copy(services = st.services + (s.id to ServiceState(live, off, rep ?: st.services[s.id]?.reports))) }
+        }
+    }
+
+    fun report(serviceId: String, kind: String) {
+        _state.update { it.copy(reporting = true, reportFailed = false) }
+        scope.launch {
+            val ok = cloud.report(serviceId, kind)
+            val now = System.currentTimeMillis()
+            _state.update { st ->
+                val cur = st.services[serviceId]
+                st.copy(
+                    reporting = false,
+                    reportFailed = !ok,
+                    reported = if (ok) st.reported + serviceId else st.reported,
+                    history = if (ok && st.open == serviceId) (st.history.orEmpty() + now) else st.history,
+                    services = if (ok && cur != null && serviceId !in st.reported) st.services + (serviceId to cur.copy(reports = (cur.reports ?: 0) + 1)) else st.services,
+                )
+            }
+        }
+    }
+}

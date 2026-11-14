@@ -75,6 +75,8 @@ data class TestUiState(
     val connection: ConnectionDetails? = null,
     val error: TestError? = null,
     val source: TestSource = TestSource.CLOUDFLARE,
+    /** Time key of the saved result once the test finishes, so the screen can open its details. */
+    val resultTime: Long? = null,
 ) {
     val running get() = phase in setOf(Phase.CONNECTING, Phase.PING, Phase.DOWNLOAD, Phase.UPLOAD)
 }
@@ -94,6 +96,7 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
     val wol = WolController(app, viewModelScope)
     val whois = WhoisController(viewModelScope)
     val cloud = CloudSync(app, historyStore, viewModelScope)
+    val status = StatusController(cloud, viewModelScope)
 
     fun signIn(activityContext: android.content.Context) {
         viewModelScope.launch { cloud.signIn(activityContext) }
@@ -185,7 +188,7 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
     override fun onCleared() {
         ping.stop()
         scan.stop()
-        listOf(trace, dns, bench, ports, netInfo, wifi, wol, whois).forEach { it.stop() }
+        listOf(trace, dns, bench, ports, netInfo, wifi, wol, whois, status).forEach { it.stop() }
         runCatching { connectivity?.unregisterNetworkCallback(networkCallback) }
     }
 
@@ -265,6 +268,7 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
         val durationMs = settings.length.seconds * 1000L
         val source = settings.source
         val id = ++runId
+        val startedAt = System.currentTimeMillis()
         job = viewModelScope.launch {
             _state.value = TestUiState(phase = Phase.CONNECTING, network = network, connection = details, source = source)
             try {
@@ -310,8 +314,32 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
                     )
                 }
 
+                val now = System.currentTimeMillis()
+                val st = _state.value
+                val info = com.dorp.pulse.engine.NetInfoReader.read(getApplication())
+                val carrier = if (network == NetworkKind.CELLULAR) runCatching {
+                    getApplication<Application>().getSystemService(android.telephony.TelephonyManager::class.java)
+                        ?.networkOperatorName?.takeIf { it.isNotBlank() }
+                }.getOrNull() else null
+                val extra = com.dorp.pulse.data.TestDetails(
+                    idleMinMs = ping.minMs, idleMaxMs = ping.maxMs, lossPercent = ping.lossPercent,
+                    downMinMs = down.loaded?.minMs, downMaxMs = down.loaded?.maxMs, downJitterMs = down.loaded?.jitterMs,
+                    upMinMs = up.loaded?.minMs, upMaxMs = up.loaded?.maxMs, upJitterMs = up.loaded?.jitterMs,
+                    downBytes = down.bytes, upBytes = up.bytes, downStreams = down.streams, upStreams = up.streams,
+                    durationSec = ((now - startedAt) / 1000).toInt(),
+                    device = android.os.Build.MODEL.let { m -> val maker = android.os.Build.MANUFACTURER.replaceFirstChar { it.uppercase() }; if (m.startsWith(maker, ignoreCase = true)) m else "$maker $m" },
+                    android = android.os.Build.VERSION.RELEASE,
+                    carrier = carrier,
+                    wifiBand = details.wifiFrequencyBand,
+                    wifiLinkMbps = details.wifiLinkSpeedMbps,
+                    protocol = test.info.protocol.takeIf { it.isNotBlank() },
+                    downSamples = com.dorp.pulse.data.TestDetails.downsample(st.downSamples),
+                    upSamples = com.dorp.pulse.data.TestDetails.downsample(st.upSamples),
+                    externalIp = test.info.ip.takeIf { it.isNotBlank() && it != "—" },
+                    localIp = info?.localIpv4,
+                )
                 val result = TestResult(
-                        time = System.currentTimeMillis(),
+                        time = now,
                         downloadMbps = down.mbps,
                         uploadMbps = up.mbps,
                         pingMs = ping.pingMs,
@@ -323,8 +351,10 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
                         downLoadedPingMs = down.loadedPingMs,
                         upLoadedPingMs = up.loadedPingMs,
                         bufferbloatGrade = grade,
+                        details = extra,
                     )
                 historyStore.add(result)
+                updateRun(id) { it.copy(resultTime = now) }
                 cloud.pushAdded(result)
             } catch (e: CancellationException) {
                 throw e

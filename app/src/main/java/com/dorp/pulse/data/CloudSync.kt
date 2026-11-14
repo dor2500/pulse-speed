@@ -84,6 +84,10 @@ class CloudSync(private val app: Application, private val history: HistoryStore,
     fun clearError() { _error.value = null }
 
     private var listener: ListenerRegistration? = null
+    /** Result ids the server has acknowledged this session, see the snapshot listener. */
+    private val confirmed = HashSet<Long>()
+    /** Unconfirmed results already re-sent once this session, so a rule rejection can't loop. */
+    private val retried = HashSet<Long>()
     private var syncedUid: String? = null
 
     init {
@@ -96,7 +100,8 @@ class CloudSync(private val app: Application, private val history: HistoryStore,
         db!!.collection("users").document(uid).collection("results")
 
     private fun onUser(user: FirebaseUser?) {
-        if (user == null) {
+        // An anonymous user only exists so outage reports can be written; it is not an account.
+        if (user == null || user.isAnonymous) {
             stopSync()
             if (_state.value !is AccountState.SigningIn) _state.value = AccountState.SignedOut
             return
@@ -117,6 +122,7 @@ class CloudSync(private val app: Application, private val history: HistoryStore,
 
     private fun startSync(uid: String) {
         stopSync()
+        confirmed.clear(); retried.clear()
         syncedUid = uid
         var first = true
         listener = results(uid)
@@ -146,7 +152,16 @@ class CloudSync(private val app: Application, private val history: HistoryStore,
                         return@addSnapshotListener
                     }
                 }
-                history.replaceAll(remote)
+                // Results the server has confirmed at least once. Only those may disappear locally when they
+                // vanish from the cloud (deleted on another device); a result the server never accepted
+                // (rejected write, still offline) stays on this phone and is uploaded again.
+                snap.documents.filter { !it.metadata.hasPendingWrites() }.forEach { d -> d.id.toLongOrNull()?.let { confirmed += it } }
+                val remoteTimes = remote.mapTo(HashSet()) { it.time }
+                val unconfirmed = history.items.value.filter { it.time !in remoteTimes && it.time !in confirmed }
+                history.replaceAll(remote + unconfirmed)
+                if (!snap.metadata.hasPendingWrites() && !snap.metadata.isFromCache) {
+                    unconfirmed.filter { it.time !in retried }.forEach { r -> retried += r.time; results(uid).document(r.time.toString()).set(toMap(r)) }
+                }
                 when {
                     snap.metadata.hasPendingWrites() -> setSync(SyncStatus.SYNCING)
                     snap.metadata.isFromCache -> setSync(SyncStatus.OFFLINE)
@@ -252,6 +267,61 @@ class CloudSync(private val app: Application, private val history: HistoryStore,
         }
     }
 
+    // ---------------------------------------------------------------- outage reports
+
+    /** True when this build talks to Firebase, so community outage reports can be shown. */
+    val reportsAvailable: Boolean get() = auth != null && db != null
+
+    /** The Google account if signed in, otherwise a silent anonymous user (needed by the security rules). */
+    private suspend fun reportUser(): FirebaseUser? {
+        val a = auth ?: return null
+        a.currentUser?.let { return it }
+        return runCatching { a.signInAnonymously().await().user }.onFailure { Log.w(TAG, "anonymous sign-in failed", it) }.getOrNull()
+    }
+
+    private fun reports(serviceId: String) = db!!.collection("status").document(serviceId).collection("reports")
+
+    /** Reports for a service since [sinceMs], counted on the server; null when unavailable. */
+    suspend fun reportCount(serviceId: String, sinceMs: Long): Long? {
+        if (!reportsAvailable || reportUser() == null) return null
+        return runCatching {
+            reports(serviceId).whereGreaterThan("t", com.google.firebase.Timestamp(java.util.Date(sinceMs)))
+                .count().get(com.google.firebase.firestore.AggregateSource.SERVER).await().count
+        }.onFailure { Log.w(TAG, "report count failed", it) }.getOrNull()
+    }
+
+    /** Report times (ms) for a service since [sinceMs], for the 24-hour chart. */
+    suspend fun reportTimes(serviceId: String, sinceMs: Long): List<Long>? {
+        if (!reportsAvailable || reportUser() == null) return null
+        return runCatching {
+            reports(serviceId).whereGreaterThan("t", com.google.firebase.Timestamp(java.util.Date(sinceMs)))
+                .limit(5000).get().await().documents.mapNotNull { it.getTimestamp("t")?.toDate()?.time }
+        }.onFailure { Log.w(TAG, "report list failed", it) }.getOrNull()
+    }
+
+    /**
+     * Adds "I have a problem with [serviceId]". One report per person per service per 15 minutes: the
+     * document id is uid_bucket, and the rules refuse a second write to the same id.
+     * @return true when stored (or already reported in this window), false on failure.
+     */
+    suspend fun report(serviceId: String, kind: String): Boolean {
+        if (!reportsAvailable) return false
+        val user = reportUser() ?: return false
+        val bucket = System.currentTimeMillis() / 900_000
+        val ref = reports(serviceId).document("${user.uid}_$bucket")
+        return runCatching {
+            ref.set(mapOf("t" to com.google.firebase.firestore.FieldValue.serverTimestamp(), "k" to kind, "u" to user.uid)).await()
+            true
+        }.getOrElse { e ->
+            // A duplicate in the same window is refused by the rules; the earlier report still counts.
+            val dup = (e as? com.google.firebase.firestore.FirebaseFirestoreException)?.code ==
+                com.google.firebase.firestore.FirebaseFirestoreException.Code.PERMISSION_DENIED &&
+                runCatching { ref.get().await().exists() }.getOrDefault(false)
+            if (!dup) Log.w(TAG, "report failed", e)
+            dup
+        }
+    }
+
     // History changes made on this device. Without an account these are no-ops.
 
     fun pushAdded(r: TestResult) {
@@ -280,6 +350,7 @@ class CloudSync(private val app: Application, private val history: HistoryStore,
         r.downLoadedPingMs?.let { put("dlp", it) }
         r.upLoadedPingMs?.let { put("ulp", it) }
         r.bufferbloatGrade?.let { put("bbg", it) }
+        r.details?.let { put("x", it.toMap(includeIps = false)) }
     }
 
     private fun fromDoc(d: DocumentSnapshot): TestResult? = runCatching {
@@ -296,6 +367,7 @@ class CloudSync(private val app: Application, private val history: HistoryStore,
             downLoadedPingMs = d.getDouble("dlp"),
             upLoadedPingMs = d.getDouble("ulp"),
             bufferbloatGrade = d.getString("bbg"),
+            details = @Suppress("UNCHECKED_CAST") TestDetails.fromMap(d.get("x") as? Map<String, Any?>),
         )
     }.getOrNull()
 

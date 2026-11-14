@@ -80,7 +80,7 @@
   if (he) { document.documentElement.lang = "he"; document.documentElement.dir = "rtl"; }
   document.title = T.title;
   const app = document.getElementById("app");
-  const SOURCES = { cloudflare: "Cloudflare", ookla: "Ookla (speedtest.net)", fast: "FAST (Netflix)", librespeed: "LibreSpeed" };
+  const SOURCES = { cloudflare: "Cloudflare", ookla: "Ookla (speedtest.net)", fast: "FAST (Netflix)", librespeed: "LibreSpeed", apple: "Apple", mlab: "M-Lab (Measurement Lab)" };
   const esc = s => String(s).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
   const num = v => typeof v === "number" && isFinite(v);
   const fmt = v => !num(v) ? "—" : v < 10 ? v.toFixed(2) : v < 100 ? v.toFixed(1) : v.toFixed(0);

@@ -31,7 +31,9 @@ Both builds use the same package name, `com.dorp.pulse`, and the same signing ke
 
   > Pulse measures your internet connection with a clean Material You design.
   >
-  > • Download, upload, ping and jitter against Cloudflare, Ookla (speedtest.net), Netflix FAST or LibreSpeed servers, or pick a specific server
+  > • Download, upload, ping and jitter against Cloudflare, Ookla (speedtest.net), Netflix FAST, LibreSpeed, Apple or M-Lab servers, or pick a specific server
+  > • Full details for every test: data used, latency under load, packet loss and connection info
+  > • Service status: is WhatsApp, YouTube or your provider down? Live checks and user reports
   > • Bufferbloat grade: see how much lag you get when the line is busy
   > • Ping any host, your router or DNS servers (ICMP, TCP or DNS timing) with live charts and packet loss
   > • Network scan: find the devices on your Wi‑Fi
@@ -85,6 +87,9 @@ Both builds use the same package name, `com.dorp.pulse`, and the same signing ke
   - *Personal info → Name, Email address:* from Google sign-in; used for **Account management**; **optional**.
   - *App activity → Other user-generated content* (speed test results): stored for **App functionality** (sync); **optional**.
   - *Device or other IDs:* not collected.
+- *App activity → Other actions* (Service status reports): service, time and kind of problem, with an anonymous ID; **optional**, for **App functionality**. Not linked to identity unless the user is signed in.
+- *Device or other IDs*: the anonymous Firebase ID used to rate-limit reports; **optional**.
+- M-Lab tests: Measurement Lab publishes test data including the IP address. Disclosed in the app next to the M-Lab option and in the privacy policy. Treat as **shared** with M-Lab only when the user picks M-Lab.
 - **Location:** the Wi‑Fi analyzer needs the Location permission (Android requires it for Wi‑Fi scan results). Location is never read, and scan results stay on the device, so under Play's definition it is **not collected**. The in-app screen explains this before asking (prominent disclosure).
 - **Not collected:** location, contacts, photos, files, messages, financial or health data.
 - Speed test servers see the user's IP address as part of the test. That's traffic to a third-party service the user picks, not data Pulse collects.

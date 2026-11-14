@@ -2,11 +2,28 @@ rules_version = '2';
 // Each signed-in user can read and write only their own history.
 service cloud.firestore {
   match /databases/{database}/documents {
+    // Community outage reports (Service status). Anyone signed in, including anonymously, may read them
+    // and add at most one report per service per 15-minute window: the id is <uid>_<window> and the
+    // window must be within 30 minutes of the server clock. Reports can't be changed or deleted.
+    match /status/{svc}/reports/{report} {
+      allow read: if request.auth != null;
+      allow create: if request.auth != null
+        && svc.matches('^[a-z0-9]{1,24}$')
+        && report.split('_').size() == 2
+        && report.split('_')[0] == request.auth.uid
+        && math.abs(int(report.split('_')[1]) * 900000 - request.time.toMillis()) < 1800000
+        && request.resource.data.keys().hasOnly(['t', 'k', 'u'])
+        && request.resource.data.t == request.time
+        && request.resource.data.u == request.auth.uid
+        && request.resource.data.k in ['app', 'site', 'login', 'connection', 'other'];
+    }
+
     match /users/{uid}/results/{result} {
       allow read, delete: if request.auth != null && request.auth.uid == uid;
       allow create, update: if request.auth != null && request.auth.uid == uid
-        && request.resource.data.keys().hasOnly(['t', 'd', 'u', 'p', 'j', 'isp', 'srv', 'net', 'src', 'dlp', 'ulp', 'bbg'])
-        && request.resource.data.t is int && request.resource.data.d is number;
+        && request.resource.data.keys().hasOnly(['t', 'd', 'u', 'p', 'j', 'isp', 'srv', 'net', 'src', 'dlp', 'ulp', 'bbg', 'x'])
+        && request.resource.data.t is int && request.resource.data.d is number
+        && (!('x' in request.resource.data) || request.resource.data.x is map);
     }
   }
 }
