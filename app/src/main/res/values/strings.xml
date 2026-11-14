@@ -342,10 +342,9 @@
     <string name="st_note">Status combines a live check from your connection, the service’s official status page where one exists, and reports from Pulse users. A few reports can be noise; many at once usually mean a real outage.</string>
     <string name="st_note_no_reports">Status combines a live check from your connection and the service’s official status page where one exists.</string>
     <string name="st_detail_note">Reports are anonymous: Pulse stores only the time, the kind of problem and a random ID that limits each person to one report per service every 15 minutes.</string>
-    <string name="src_apple_desc">Apple’s content network, the servers behind iPhone and Mac speed checks</string>
     <string name="src_mlab_desc">Measurement Lab’s open research servers. M-Lab publishes every test, including your IP address, as open data</string>
-    <string name="server_apple_note">Automatic · Apple routes you to its nearest edge server</string>
     <string name="server_mlab_note">Automatic · M-Lab picks its nearest server</string>
     <string name="st_reports_hour_one">1 report in the last hour</string>
     <string name="details_streams_single">Single · 1 connection each way</string>
+    <string name="details_android">System</string>
 </resources>

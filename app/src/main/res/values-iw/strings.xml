@@ -344,10 +344,9 @@
     <string name="st_note">הסטטוס משלב בדיקה חיה מהחיבור שלכם, את דף הסטטוס הרשמי של השירות כשיש כזה, ודיווחים ממשתמשי Pulse. דיווחים בודדים יכולים להיות רעש; הרבה בבת אחת מעידים בדרך כלל על תקלה אמיתית.</string>
     <string name="st_note_no_reports">הסטטוס משלב בדיקה חיה מהחיבור שלכם ואת דף הסטטוס הרשמי של השירות כשיש כזה.</string>
     <string name="st_detail_note">הדיווחים אנונימיים: Pulse שומרת רק את השעה, סוג הבעיה ומזהה אקראי שמגביל כל אדם לדיווח אחד לשירות בכל 15 דקות.</string>
-    <string name="src_apple_desc">רשת התוכן של Apple, השרתים שבודקים את המהירות באייפון ובמק</string>
     <string name="src_mlab_desc">שרתי המחקר הפתוחים של Measurement Lab. ‏M-Lab מפרסמת כל בדיקה, כולל כתובת ה-IP, כמידע פתוח</string>
-    <string name="server_apple_note">אוטומטי · Apple מנתבת לשרת הקצה הקרוב</string>
     <string name="server_mlab_note">אוטומטי · M-Lab בוחרת את השרת הקרוב</string>
     <string name="st_reports_hour_one">דיווח אחד בשעה האחרונה</string>
     <string name="details_streams_single">יחיד · חיבור אחד לכל כיוון</string>
+    <string name="details_android">מערכת</string>
 </resources>

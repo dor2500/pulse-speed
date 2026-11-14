@@ -669,7 +669,7 @@ private fun SourcePicker(source: TestSource, enabled: Boolean, onChange: (TestSo
                 .padding(horizontal = 4.dp),
             horizontalArrangement = Arrangement.spacedBy(8.dp),
         ) {
-            TestSource.entries.forEach { s ->
+            TestSource.entries.filter { it.offered }.forEach { s ->
                 val selected = s == source
                 FilterChip(
                     selected = selected,
@@ -697,13 +697,12 @@ fun TestSource.description(): Int = when (this) {
     TestSource.OOKLA -> R.string.src_ookla_desc
     TestSource.FAST -> R.string.src_fast_desc
     TestSource.LIBRESPEED -> R.string.src_libre_desc
-    TestSource.APPLE -> R.string.src_apple_desc
+    TestSource.APPLE -> R.string.src_cloudflare_desc
     TestSource.MLAB -> R.string.src_mlab_desc
 }
 
 /** Shown in the server row for sources that always pick their own nearest server. */
 fun TestSource.autoNote(): Int = when (this) {
-    TestSource.APPLE -> R.string.server_apple_note
     TestSource.MLAB -> R.string.server_mlab_note
     else -> R.string.server_cloudflare_note
 }
