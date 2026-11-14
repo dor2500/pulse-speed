@@ -302,6 +302,8 @@ class SpeedTestEngine {
             useCaches = false
             setRequestProperty("User-Agent", USER_AGENT)
             setRequestProperty("Accept-Encoding", "identity")
+            // speed.cloudflare.com/meta answers 403 {} without a Referer from its own site (since late 2026).
+            if (url.startsWith(CLOUDFLARE)) setRequestProperty("Referer", "$CLOUDFLARE/")
         }
 
     private fun mbps(bytes: Long, nanos: Long): Double =

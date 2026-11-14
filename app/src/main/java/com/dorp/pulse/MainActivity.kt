@@ -72,6 +72,13 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.dorp.pulse.data.localizedContext
 import com.dorp.pulse.ui.HistoryScreen
 import com.dorp.pulse.ui.PingScreen
+import com.dorp.pulse.ui.ToolDetail
+import com.dorp.pulse.ui.ToolId
+import com.dorp.pulse.ui.ToolsHub
+import androidx.activity.compose.BackHandler
+import androidx.compose.material.icons.outlined.Handyman
+import androidx.compose.material.icons.rounded.Handyman
+import androidx.compose.runtime.mutableStateOf
 import com.dorp.pulse.ui.ServerPickerSheet
 import com.dorp.pulse.ui.SettingsScreen
 import com.dorp.pulse.ui.TestScreen
@@ -113,8 +120,9 @@ private fun AppRoot(vm: MainViewModel) {
     val choices by vm.serverChoices.choices.collectAsStateWithLifecycle()
     val picker by vm.picker.collectAsStateWithLifecycle()
     val ping by vm.ping.state.collectAsStateWithLifecycle()
-    val scan by vm.scan.state.collectAsStateWithLifecycle()
-    var toolTab by rememberSaveable { mutableIntStateOf(0) }
+    // The tool open inside the Tools tab (null = the grid). Saved by name so it survives rotation.
+    var openToolName by rememberSaveable { mutableStateOf<String?>(null) }
+    val openTool = openToolName?.let { n -> ToolId.entries.firstOrNull { it.name == n } }
     val account by vm.cloud.state.collectAsStateWithLifecycle()
     val accountError by vm.cloud.error.collectAsStateWithLifecycle()
 
@@ -138,7 +146,7 @@ private fun AppRoot(vm: MainViewModel) {
                 selected = tab,
                 items = listOf(
                     NavSpec(Icons.Rounded.Speed, Icons.Outlined.Speed, stringResource(R.string.tab_test)),
-                    NavSpec(Icons.Rounded.NetworkPing, Icons.Outlined.NetworkPing, stringResource(R.string.tab_ping)),
+                    NavSpec(Icons.Rounded.Handyman, Icons.Outlined.Handyman, stringResource(R.string.tab_tools)),
                     NavSpec(Icons.Rounded.History, Icons.Outlined.History, stringResource(R.string.tab_history)),
                     NavSpec(
                         Icons.Rounded.Settings, Icons.Outlined.Settings, stringResource(R.string.tab_settings),
@@ -166,23 +174,26 @@ private fun AppRoot(vm: MainViewModel) {
                     onCancel = vm::cancel,
                     contentPadding = padding,
                 )
-                1 -> PingScreen(
-                    state = ping,
-                    onHostChange = vm.ping::setHost,
-                    onModeChange = vm.ping::setMode,
-                    onCountChange = vm.ping::setCount,
-                    onStart = vm.ping::start,
-                    onStop = vm.ping::stop,
-                    onForgetRecent = vm.ping::forgetRecent,
-                    onRefreshLocal = vm.ping::refreshLocal,
-                    toolTab = toolTab,
-                    onToolTab = { toolTab = it },
-                    scan = scan,
-                    onScanStart = vm.scan::start,
-                    onScanStop = vm.scan::stop,
-                    onScanRefresh = vm.scan::refresh,
-                    contentPadding = padding,
-                )
+                1 -> {
+                    BackHandler(enabled = openTool != null) { openToolName = null }
+                    val pingHost: (String) -> Unit = { host -> openToolName = ToolId.PING.name; vm.ping.start(host) }
+                    when (openTool) {
+                        null -> ToolsHub(onOpen = { openToolName = it.name }, contentPadding = padding)
+                        ToolId.PING -> PingScreen(
+                            state = ping,
+                            onHostChange = vm.ping::setHost,
+                            onModeChange = vm.ping::setMode,
+                            onCountChange = vm.ping::setCount,
+                            onStart = vm.ping::start,
+                            onStop = vm.ping::stop,
+                            onForgetRecent = vm.ping::forgetRecent,
+                            onRefreshLocal = vm.ping::refreshLocal,
+                            onBack = { openToolName = null },
+                            contentPadding = padding,
+                        )
+                        else -> ToolDetail(openTool, vm, onBack = { openToolName = null }, onPing = pingHost, contentPadding = padding)
+                    }
+                }
                 2 -> HistoryScreen(
                     items = history,
                     unit = settings.unit,
