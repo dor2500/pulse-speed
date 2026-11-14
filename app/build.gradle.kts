@@ -16,8 +16,8 @@ android {
         applicationId = "com.dorp.pulse"
         minSdk = 26
         targetSdk = 36
-        versionCode = 12
-        versionName = "1.7.2"
+        versionCode = 13
+        versionName = "1.8.0"
     }
 
     // "github" is the sideloaded build that updates itself from GitHub Releases.

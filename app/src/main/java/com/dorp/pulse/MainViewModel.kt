@@ -85,6 +85,14 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
     val serverChoices = ServerChoiceStore(app)
     val ping = PingController(app, viewModelScope)
     val scan = ScanController(app, viewModelScope)
+    val trace = TraceController(viewModelScope)
+    val dns = DnsLookupController(app, viewModelScope)
+    val bench = DnsBenchController(app, viewModelScope)
+    val ports = PortScanController(app, viewModelScope)
+    val netInfo = NetInfoController(app, viewModelScope)
+    val wifi = WifiController(app, viewModelScope)
+    val wol = WolController(app, viewModelScope)
+    val whois = WhoisController(viewModelScope)
     val cloud = CloudSync(app, historyStore, viewModelScope)
 
     fun signIn(activityContext: android.content.Context) {
@@ -177,6 +185,7 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
     override fun onCleared() {
         ping.stop()
         scan.stop()
+        listOf(trace, dns, bench, ports, netInfo, wifi, wol, whois).forEach { it.stop() }
         runCatching { connectivity?.unregisterNetworkCallback(networkCallback) }
     }
 

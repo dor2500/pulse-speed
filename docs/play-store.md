@@ -35,6 +35,7 @@ Both builds use the same package name, `com.dorp.pulse`, and the same signing ke
   > • Bufferbloat grade: see how much lag you get when the line is busy
   > • Ping any host, your router or DNS servers (ICMP, TCP or DNS timing) with live charts and packet loss
   > • Network scan: find the devices on your Wi‑Fi
+  > • Network tools: traceroute, DNS lookup and benchmark, port scanner, network info, Wi‑Fi analyzer, Wake-on-LAN and whois
   > • History with trends, CSV export and share-as-link
   > • Optional Google sign-in to sync history across devices
   > • Light, dark and OLED themes, English and Hebrew
@@ -49,6 +50,7 @@ Both builds use the same package name, `com.dorp.pulse`, and the same signing ke
   > • ציון Bufferbloat: כמה השהיה יש כשהקו עמוס
   > • פינג לכל מארח, לנתב או לשרתי DNS (ICMP,‏ TCP או DNS) עם גרף חי ואובדן חבילות
   > • סריקת רשת: כל המכשירים ב-Wi‑Fi שלכם
+  > • כלי רשת: Traceroute, בדיקת DNS והשוואת שרתים, סורק פורטים, פרטי הרשת, מנתח Wi‑Fi,‏ Wake-on-LAN ו-Whois
   > • היסטוריה עם מגמות, ייצוא CSV ושיתוף בקישור
   > • התחברות עם Google לסנכרון ההיסטוריה בין מכשירים (לא חובה)
   > • ערכות נושא בהירה, כהה ו-OLED, עברית ואנגלית
@@ -83,6 +85,7 @@ Both builds use the same package name, `com.dorp.pulse`, and the same signing ke
   - *Personal info → Name, Email address:* from Google sign-in; used for **Account management**; **optional**.
   - *App activity → Other user-generated content* (speed test results): stored for **App functionality** (sync); **optional**.
   - *Device or other IDs:* not collected.
+- **Location:** the Wi‑Fi analyzer needs the Location permission (Android requires it for Wi‑Fi scan results). Location is never read, and scan results stay on the device, so under Play's definition it is **not collected**. The in-app screen explains this before asking (prominent disclosure).
 - **Not collected:** location, contacts, photos, files, messages, financial or health data.
 - Speed test servers see the user's IP address as part of the test. That's traffic to a third-party service the user picks, not data Pulse collects.
 
@@ -101,5 +104,5 @@ The app already has a Leanback launcher entry. To list it for TV as well, Play n
 
 - Microsoft Defender scan of the APK, AAB, source and site files: no threats.
 - Android lint (`lintPlayRelease`, `lintGithubRelease`): 0 errors.
-- Play build permissions: `INTERNET`, `ACCESS_NETWORK_STATE`, `ACCESS_WIFI_STATE`, plus Google Play services' own `READ_GSERVICES`. No dangerous permissions.
+- Play build permissions: `INTERNET`, `ACCESS_NETWORK_STATE`, `ACCESS_WIFI_STATE`, `CHANGE_WIFI_STATE`, plus Google Play services' own `READ_GSERVICES`. The only runtime permission is Location (`ACCESS_FINE_LOCATION` and `ACCESS_COARSE_LOCATION`), requested in the foreground only when the Wi‑Fi analyzer is opened. There is no background location, so no location declaration form is needed.
 - Network endpoints in the code: Cloudflare, Ookla, FAST, LibreSpeed, GitHub (updater, GitHub build only) and the share-link page.

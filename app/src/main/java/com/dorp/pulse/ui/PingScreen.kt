@@ -85,12 +85,7 @@ fun PingScreen(
     onStop: () -> Unit,
     onForgetRecent: (String) -> Unit,
     onRefreshLocal: () -> Unit,
-    toolTab: Int,
-    onToolTab: (Int) -> Unit,
-    scan: ScanUiState,
-    onScanStart: () -> Unit,
-    onScanStop: () -> Unit,
-    onScanRefresh: () -> Unit,
+    onBack: () -> Unit,
     contentPadding: PaddingValues,
 ) {
     LaunchedEffect(Unit) { onRefreshLocal() }
@@ -104,30 +99,7 @@ fun PingScreen(
             .padding(contentPadding)
             .padding(horizontal = 20.dp),
     ) {
-        Text(
-            stringResource(R.string.tab_ping),
-            style = MaterialTheme.typography.headlineLarge,
-            color = MaterialTheme.colorScheme.primary,
-            modifier = Modifier.padding(top = 20.dp, bottom = 12.dp),
-        )
-        Segmented(
-            options = listOf(0 to stringResource(R.string.tool_ping), 1 to stringResource(R.string.tool_devices)),
-            selected = toolTab,
-            enabled = true,
-            onSelect = onToolTab,
-        )
-        Spacer(Modifier.height(12.dp))
-        if (toolTab == 1) {
-            ScanContent(
-                state = scan,
-                onStart = onScanStart,
-                onStop = onScanStop,
-                onRefresh = onScanRefresh,
-                onPingDevice = { ip -> onToolTab(0); go(ip) },
-            )
-            Spacer(Modifier.height(24.dp))
-            return@Column
-        }
+        ToolHeader(stringResource(R.string.tool_ping), onBack)
 
         LiveCard(state, onStart = { go(null) }, onStop = onStop)
         Spacer(Modifier.height(12.dp))
@@ -467,7 +439,7 @@ private fun TargetChip(label: String, host: String, icon: ImageVector, state: Pi
 }
 
 @Composable
-private fun SectionLabel(text: String) {
+internal fun SectionLabel(text: String) {
     Text(
         text,
         style = MaterialTheme.typography.titleSmall,
@@ -477,7 +449,7 @@ private fun SectionLabel(text: String) {
 }
 
 @Composable
-private fun <T> Segmented(options: List<Pair<T, String>>, selected: T, enabled: Boolean, onSelect: (T) -> Unit) {
+internal fun <T> Segmented(options: List<Pair<T, String>>, selected: T, enabled: Boolean, onSelect: (T) -> Unit) {
     SingleChoiceSegmentedButtonRow(Modifier.fillMaxWidth()) {
         options.forEachIndexed { i, (value, label) ->
             SegmentedButton(
