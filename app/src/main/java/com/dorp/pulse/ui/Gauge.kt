@@ -189,8 +189,8 @@ fun MorphingStage(
                 rotation = rotation,
                 breath = breath,
                 morph = morph,
-                capHalfW = min(size.width * 0.46f, base * 2.6f),
-                capHalfH = base * 0.56f,
+                capHalfW = min(size.width * 0.46f, max(base * 2.6f, size.width * 0.38f)),
+                capHalfH = min(size.height * 0.42f, 68.dp.toPx()),
             )
 
             // Soft halo that pulses opposite to the body.

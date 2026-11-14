@@ -56,7 +56,7 @@ input { font: inherit; color: inherit; }
 .section-label { font-size: 14px; font-weight: 500; color: var(--primary); margin: 18px 4px 8px; }
 
 /* Header */
-.header { display: flex; align-items: center; padding: 12px 4px 0; }
+.header { display: flex; align-items: center; padding: 6px 4px 0; }
 .header .headline-l { flex: 1; }
 .chip { display: inline-flex; align-items: center; gap: 8px; height: 32px; padding: 0 16px 0 8px; border-radius: 999px;
   border: 1px solid var(--outline-variant); font-size: 14px; font-weight: 500; white-space: nowrap; }
@@ -73,15 +73,15 @@ input { font: inherit; color: inherit; }
 .source-note { margin: 6px 4px 0; }
 
 /* Server row */
-.server-row { display: flex; align-items: center; gap: 14px; margin-top: 8px; padding: 12px 16px; border-radius: 20px; background: var(--sc-low); }
+.server-row { display: flex; align-items: center; gap: 12px; margin-top: 6px; padding: 10px 14px; border-radius: 20px; background: var(--sc-low); }
 .server-row .badge { width: 40px; height: 40px; border-radius: 12px; background: var(--secondary-container); color: var(--on-secondary-container);
   display: grid; place-items: center; flex: none; }
 .server-row .txt { min-width: 0; }
 .server-row .txt div:last-child { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
 /* Metric cards */
-.metrics { display: flex; gap: 8px; align-items: center; height: 150px; margin-top: 12px; }
-.metric { flex: 1 1 0; min-width: 0; height: 130px; padding: 12px; display: flex; flex-direction: column; justify-content: center;
+.metrics { display: flex; gap: 8px; align-items: center; height: 122px; margin-top: 8px; }
+.metric { flex: 1 1 0; min-width: 0; height: 106px; padding: 10px 12px; display: flex; flex-direction: column; justify-content: center;
   border-radius: 28px 12px 28px 12px; background: var(--sc); color: var(--on-surface);
   transition: flex-grow .45s cubic-bezier(.34,1.56,.64,1), height .45s cubic-bezier(.34,1.56,.64,1), transform .45s cubic-bezier(.34,1.56,.64,1),
     border-radius .3s, background .3s, color .3s, box-shadow .3s; }
@@ -91,7 +91,7 @@ input { font: inherit; color: inherit; }
 .metric .val { font-size: 24px; line-height: 32px; white-space: nowrap; }
 .metric .sub { font-size: 11px; opacity: .7; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .metric .lbl { font-size: 12px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.metric.active { flex-grow: 1.25; height: 146px; transform: scale(1.04); border-radius: 28px; box-shadow: 0 4px 12px var(--shadow); }
+.metric.active { flex-grow: 1.25; height: 118px; transform: scale(1.04); border-radius: 28px; box-shadow: 0 4px 12px var(--shadow); }
 .metric.active.p { background: var(--primary-container); color: var(--on-primary-container); }
 .metric.active.p .badge { background: var(--primary); color: var(--surface); }
 .metric.active.s { background: var(--secondary-container); color: var(--on-secondary-container); }
@@ -100,7 +100,7 @@ input { font: inherit; color: inherit; }
 .metric.active.t .badge { background: var(--tertiary); color: var(--surface); }
 
 /* Gauge stage */
-.stage { position: relative; width: 100%; max-width: 420px; aspect-ratio: 1.08; margin: 8px auto 0; }
+.stage { position: relative; width: 100%; max-width: 420px; height: 264px; margin: 4px auto 0; }
 .stage canvas { position: absolute; inset: 0; width: 100%; height: 100%; }
 .stage .centre { position: absolute; inset: 0; display: grid; place-items: center; text-align: center; pointer-events: none; }
 .stage.idle { cursor: pointer; }
@@ -115,7 +115,8 @@ input { font: inherit; color: inherit; }
 .done-readout .u { text-align: start; }
 
 /* Action row */
-.actions { min-height: 72px; padding: 8px 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px; }
+.actions { padding: 4px 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px; }
+.actions:empty { display: none; }
 .progress { width: 60%; height: 8px; border-radius: 4px; background: var(--sc-highest); overflow: hidden; }
 .progress > i { display: block; height: 100%; background: var(--primary); border-radius: 4px; transition: width .2s; }
 .btn { height: 52px; padding: 0 28px; border-radius: 999px; display: inline-flex; align-items: center; justify-content: center; gap: 8px;

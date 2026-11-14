@@ -64,7 +64,7 @@ fun ServerRow(source: TestSource, choice: ServerOption?, enabled: Boolean, onOpe
             .clip(RoundedCornerShape(20.dp))
             .clickable(enabled = canPick, onClick = onOpen),
     ) {
-        Row(Modifier.padding(horizontal = 14.dp, vertical = 10.dp), verticalAlignment = Alignment.CenterVertically) {
+        Row(Modifier.padding(horizontal = 14.dp, vertical = 8.dp), verticalAlignment = Alignment.CenterVertically) {
             Box(
                 Modifier.size(36.dp).clip(RoundedCornerShape(12.dp)).background(scheme.secondaryContainer),
                 contentAlignment = Alignment.Center,

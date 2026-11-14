@@ -129,6 +129,11 @@ fun TestScreen(
     LaunchedEffect(state.phase) {
         if (state.phase == Phase.DONE) haptics.performHapticFeedback(HapticFeedbackType.LongPress)
     }
+    val stageHeight by animateDpAsState(
+        if (state.phase == Phase.DONE) 160.dp else 264.dp,
+        spring(dampingRatio = 0.8f, stiffness = Spring.StiffnessMediumLow),
+        label = "stageHeight",
+    )
     Column(
         Modifier
             .fillMaxSize()
@@ -138,13 +143,13 @@ fun TestScreen(
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
         Header(state)
-        Spacer(Modifier.height(12.dp))
+        Spacer(Modifier.height(6.dp))
         SourcePicker(source, enabled = !state.running, onSourceChange)
-        Spacer(Modifier.height(8.dp))
+        Spacer(Modifier.height(4.dp))
         ServerRow(source, serverChoice, enabled = !state.running, onOpen = onOpenServers)
-        Spacer(Modifier.height(12.dp))
-        MetricsRow(state, unit)
         Spacer(Modifier.height(8.dp))
+        MetricsRow(state, unit)
+        Spacer(Modifier.height(4.dp))
 
         MorphingStage(
             state = state,
@@ -156,7 +161,7 @@ fun TestScreen(
             modifier = Modifier
                 .widthIn(max = 420.dp)
                 .fillMaxWidth()
-                .aspectRatio(1.08f),
+                .height(stageHeight),
         )
 
         ActionRow(state, unit, onStart, onCancel)
@@ -176,7 +181,7 @@ fun TestScreen(
             BufferbloatCard(state)
         }
         ConnectionCard(state)
-        Spacer(Modifier.height(16.dp))
+        Spacer(Modifier.height(4.dp))
     }
 }
 
@@ -185,7 +190,7 @@ private fun Header(state: TestUiState) {
     Row(
         Modifier
             .fillMaxWidth()
-            .padding(top = 12.dp, start = 4.dp),
+            .padding(top = 4.dp, start = 4.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
         Text(
@@ -250,7 +255,7 @@ private fun MetricsRow(state: TestUiState, unit: SpeedUnit) {
     }
 }
 
-private val IntrinsicCardHeight = 150.dp
+private val IntrinsicCardHeight = 122.dp
 
 private enum class Accent { PRIMARY, SECONDARY, TERTIARY }
 
@@ -273,7 +278,7 @@ private fun RowScope.MetricCard(
     val weight by animateFloatAsState(if (active) 1.25f else 1f, bouncy, label = "weight")
     val scale by animateFloatAsState(if (active) 1.04f else 1f, bouncy, label = "scale")
     val elevation by animateDpAsState(if (active) 8.dp else 0.dp, label = "elev")
-    val height by animateDpAsState(if (active) 146.dp else 130.dp, spring(dampingRatio = Spring.DampingRatioMediumBouncy), label = "h")
+    val height by animateDpAsState(if (active) 118.dp else 106.dp, spring(dampingRatio = Spring.DampingRatioMediumBouncy), label = "h")
     // Asymmetric: diagonal 28/12 corners at rest; the running card rounds out fully.
     val small by animateDpAsState(if (active) CornerLarge else CornerSmall, label = "corner")
     val bg by animateColorAsState(if (active) activeBg else scheme.surfaceContainer, label = "bg")
@@ -291,14 +296,14 @@ private fun RowScope.MetricCard(
         contentColor = fg,
         shadowElevation = elevation,
     ) {
-        Column(Modifier.padding(horizontal = 12.dp, vertical = 12.dp), verticalArrangement = Arrangement.Center) {
+        Column(Modifier.padding(horizontal = 12.dp, vertical = 10.dp), verticalArrangement = Arrangement.Center) {
             Box(
-                Modifier.size(28.dp).clip(CircleShape).background(badge),
+                Modifier.size(26.dp).clip(CircleShape).background(badge),
                 contentAlignment = Alignment.Center,
             ) {
-                Icon(icon, null, Modifier.size(16.dp), tint = badgeFg)
+                Icon(icon, null, Modifier.size(15.dp), tint = badgeFg)
             }
-            Spacer(Modifier.height(6.dp))
+            Spacer(Modifier.height(4.dp))
             Text(label, style = MaterialTheme.typography.labelMedium, maxLines = 1, overflow = TextOverflow.Ellipsis)
             Text(value, style = MaterialTheme.typography.headlineSmall, maxLines = 1, softWrap = false)
             Text(
@@ -314,12 +319,12 @@ private fun RowScope.MetricCard(
 
 @Composable
 private fun ActionRow(state: TestUiState, unit: SpeedUnit, onStart: () -> Unit, onCancel: () -> Unit) {
+    if (!state.running && state.phase != Phase.DONE) return
     val context = LocalContext.current
     Column(
         Modifier
             .fillMaxWidth()
-            .heightIn(min = 72.dp)
-            .padding(vertical = 8.dp),
+            .padding(vertical = 4.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center,
     ) {
@@ -439,12 +444,12 @@ private fun ErrorCard(error: TestError) {
 private fun GraphCard(state: TestUiState, unit: SpeedUnit) {
     val scheme = MaterialTheme.colorScheme
     ElevatedCard(
-        Modifier.fillMaxWidth().padding(vertical = 8.dp),
+        Modifier.fillMaxWidth().padding(vertical = 4.dp),
         shape = RoundedCornerShape(CornerLarge),
         colors = CardDefaults.elevatedCardColors(containerColor = scheme.surfaceContainerLow),
         elevation = CardDefaults.elevatedCardElevation(defaultElevation = 3.dp),
     ) {
-        Column(Modifier.padding(20.dp)) {
+        Column(Modifier.padding(16.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Text(stringResource(R.string.graph_title), style = MaterialTheme.typography.titleMedium, modifier = Modifier.weight(1f))
                 Legend(scheme.primary, stringResource(R.string.phase_download))
@@ -526,11 +531,11 @@ private fun BufferbloatCard(state: TestUiState) {
         else -> Color(0xFFD32F2F)
     }
     Surface(
-        Modifier.fillMaxWidth().padding(vertical = 8.dp),
+        Modifier.fillMaxWidth().padding(vertical = 4.dp),
         shape = RoundedCornerShape(CornerLarge),
         color = scheme.surfaceContainerLow,
     ) {
-        Column(Modifier.padding(20.dp)) {
+        Column(Modifier.padding(16.dp)) {
             Row(
                 Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically,
@@ -597,15 +602,15 @@ private fun ConnectionCard(state: TestUiState) {
     val scheme = MaterialTheme.colorScheme
     val server = state.server
     Card(
-        Modifier.fillMaxWidth().padding(vertical = 8.dp),
+        Modifier.fillMaxWidth().padding(vertical = 4.dp),
         shape = RoundedCornerShape(CornerLarge),
         colors = CardDefaults.cardColors(containerColor = scheme.surfaceContainerLow),
     ) {
-        Column(Modifier.padding(vertical = 8.dp)) {
+        Column(Modifier.padding(vertical = 4.dp)) {
             Text(
                 stringResource(R.string.connection_title),
                 style = MaterialTheme.typography.titleMedium,
-                modifier = Modifier.padding(horizontal = 20.dp, vertical = 10.dp),
+                modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
             )
             InfoRow(Icons.Rounded.Business, stringResource(R.string.provider), server?.isp?.ifBlank { null } ?: "—")
             InfoRow(Icons.Rounded.Dns, stringResource(R.string.server), server?.serverLabel?.ifBlank { null } ?: "—")
@@ -630,7 +635,7 @@ private fun ConnectionCard(state: TestUiState) {
 @Composable
 private fun InfoRow(icon: ImageVector, label: String, value: String, last: Boolean = false) {
     Row(
-        Modifier.fillMaxWidth().padding(horizontal = 20.dp, vertical = 10.dp),
+        Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 7.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
         Box(
