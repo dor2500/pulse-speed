@@ -31,7 +31,7 @@ Both builds use the same package name, `com.dorp.pulse`, and the same signing ke
 
   > Pulse measures your internet connection with a clean Material You design.
   >
-  > • Download, upload, ping and jitter against Cloudflare, Ookla (speedtest.net), Netflix FAST, LibreSpeed, Apple or M-Lab servers, or pick a specific server
+  > • Download, upload, ping and jitter against Cloudflare, Ookla (speedtest.net), Netflix FAST, LibreSpeed or M-Lab servers, or pick a specific server
   > • Full details for every test: data used, latency under load, packet loss and connection info
   > • Service status: is WhatsApp, YouTube or your provider down? Live checks and user reports
   > • Bufferbloat grade: see how much lag you get when the line is busy

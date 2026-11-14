@@ -21,6 +21,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.ArrowBack
+import androidx.compose.material.icons.rounded.Android
 import androidx.compose.material.icons.rounded.ArrowDownward
 import androidx.compose.material.icons.rounded.ArrowUpward
 import androidx.compose.material.icons.rounded.Business
@@ -166,7 +167,8 @@ fun ResultDetailsScreen(
                 if (d.downStreams <= 1 && (d.upStreams ?: 1) <= 1) stringResource(R.string.details_streams_single)
                 else stringResource(R.string.details_streams, d.downStreams, d.upStreams ?: 0),
             )
-            d?.device?.let { DetailRow(Icons.Rounded.PhoneAndroid, stringResource(R.string.details_device), it + (d.android?.let { a -> " · Android $a" } ?: "")) }
+            com.dorp.pulse.data.DeviceName.display(d?.device)?.let { DetailRow(Icons.Rounded.PhoneAndroid, stringResource(R.string.details_device), it) }
+            d?.android?.let { DetailRow(Icons.Rounded.Android, stringResource(R.string.details_android), "Android $it") }
             d?.durationSec?.let { DetailRow(Icons.Rounded.Timer, stringResource(R.string.details_duration), stringResource(R.string.details_seconds, it)) }
             d?.localIp?.let { DetailRow(Icons.Rounded.Home, stringResource(R.string.details_internal_ip), it) }
             d?.externalIp?.let { DetailRow(Icons.Rounded.Public, stringResource(R.string.details_external_ip), it) }

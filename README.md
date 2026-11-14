@@ -74,7 +74,7 @@ The TV, desktop and CLI builds are still at v1.5.2; Ping, network scan, share li
 - **Network scan**: find every device on your Wi-Fi (router, phones, computers, TVs, printers, speakers) with names and latency; tap one to ping it
 - **Full test details**: data used, ping idle and under load (low / high / jitter), packet loss, connection, device and IPs (IPs stay on the device)
 - **Service status**: Downdetector-style board for 34 services (WhatsApp, Bezeq, YouTube…) with live checks, official status pages and anonymous user reports
-- **Six test networks**: Cloudflare, Ookla, FAST, LibreSpeed, Apple and M-Lab (NDT7)
+- **Five test networks**: Cloudflare, Ookla, FAST, LibreSpeed and M-Lab (NDT7)
 - **Network tools**: traceroute, DNS lookup (A/AAAA/MX/TXT/NS/SOA/PTR), DNS benchmark, port scanner, network info (public and local IPs, gateway, DNS, MTU), Wi-Fi analyzer with a channel chart, Wake-on-LAN and whois / IP lookup
 - **Share links**: share any result as a link to a full result page; the data lives only in the link
 - **Privacy**: no ads, no tracking ([privacy policy](https://dor2500.github.io/pulse-speed/privacy/)); publishing notes in [docs/play-store.md](docs/play-store.md)

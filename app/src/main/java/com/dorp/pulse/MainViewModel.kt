@@ -327,7 +327,7 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
                     upMinMs = up.loaded?.minMs, upMaxMs = up.loaded?.maxMs, upJitterMs = up.loaded?.jitterMs,
                     downBytes = down.bytes, upBytes = up.bytes, downStreams = down.streams, upStreams = up.streams,
                     durationSec = ((now - startedAt) / 1000).toInt(),
-                    device = android.os.Build.MODEL.let { m -> val maker = android.os.Build.MANUFACTURER.replaceFirstChar { it.uppercase() }; if (m.startsWith(maker, ignoreCase = true)) m else "$maker $m" },
+                    device = com.dorp.pulse.data.DeviceName.current(getApplication()),
                     android = android.os.Build.VERSION.RELEASE,
                     carrier = carrier,
                     wifiBand = details.wifiFrequencyBand,

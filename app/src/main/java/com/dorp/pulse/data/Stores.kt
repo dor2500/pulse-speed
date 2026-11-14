@@ -72,7 +72,7 @@ class SettingsStore(context: Context) {
         unit = enumOr(prefs.getString("unit", null), SpeedUnit.MBPS),
         length = enumOr(prefs.getString("length", null), TestLength.STANDARD),
         language = storedLanguage(prefs),
-        source = enumOr(prefs.getString("source", null), TestSource.CLOUDFLARE),
+        source = enumOr(prefs.getString("source", null), TestSource.CLOUDFLARE).takeIf { it.offered } ?: TestSource.CLOUDFLARE,
     )
 
     private inline fun <reified T : Enum<T>> enumOr(name: String?, fallback: T): T =
