@@ -94,6 +94,7 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
     val netInfo = NetInfoController(app, viewModelScope)
     val wifi = WifiController(app, viewModelScope)
     val wol = WolController(app, viewModelScope)
+    val rdp = RdpController(app, viewModelScope)
     val whois = WhoisController(viewModelScope)
     val cloud = CloudSync(app, historyStore, viewModelScope)
     val status = StatusController(cloud, viewModelScope)

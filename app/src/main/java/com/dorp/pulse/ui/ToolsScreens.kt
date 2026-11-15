@@ -28,6 +28,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Close
+import androidx.compose.material.icons.rounded.DesktopWindows
 import androidx.compose.material.icons.rounded.Dns
 import androidx.compose.material.icons.rounded.Info
 import androidx.compose.material.icons.rounded.Lan
@@ -77,6 +78,8 @@ import com.dorp.pulse.NetInfoState
 import com.dorp.pulse.PortPreset
 import com.dorp.pulse.PortScanState
 import com.dorp.pulse.R
+import com.dorp.pulse.RdpState
+import com.dorp.pulse.RdpTarget
 import com.dorp.pulse.TraceState
 import com.dorp.pulse.WhoisState
 import com.dorp.pulse.WifiState
@@ -86,6 +89,7 @@ import com.dorp.pulse.engine.PortScanner
 import java.util.Locale
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
 
 enum class ToolId(val icon: ImageVector, val title: Int, val desc: Int) {
     STATUS(Icons.Rounded.MonitorHeart, R.string.t_status, R.string.td_status),
@@ -98,6 +102,7 @@ enum class ToolId(val icon: ImageVector, val title: Int, val desc: Int) {
     INFO(Icons.Rounded.Info, R.string.t_info, R.string.td_info),
     WIFI(Icons.Rounded.WifiFind, R.string.t_wifi, R.string.td_wifi),
     WOL(Icons.Rounded.PowerSettingsNew, R.string.t_wol, R.string.td_wol),
+    RDP(Icons.Rounded.DesktopWindows, R.string.t_rdp, R.string.td_rdp),
     WHOIS(Icons.Rounded.PersonSearch, R.string.t_whois, R.string.td_whois),
 }
 
@@ -159,6 +164,7 @@ fun ToolDetail(tool: ToolId, vm: MainViewModel, onBack: () -> Unit, onPing: (Str
         ToolId.INFO -> { val s by vm.netInfo.state.collectAsStateWithLifecycle(); InfoScreen(s, vm, onBack, onPing, contentPadding) }
         ToolId.WIFI -> { val s by vm.wifi.state.collectAsStateWithLifecycle(); WifiScreen(s, vm, onBack, contentPadding) }
         ToolId.WOL -> { val s by vm.wol.state.collectAsStateWithLifecycle(); WolScreen(s, vm, onBack, contentPadding) }
+        ToolId.RDP -> { val s by vm.rdp.state.collectAsStateWithLifecycle(); RdpScreen(s, vm, onBack, contentPadding) }
         ToolId.WHOIS -> { val s by vm.whois.state.collectAsStateWithLifecycle(); WhoisScreen(s, vm, onBack, contentPadding) }
         ToolId.STATUS -> { val s by vm.status.state.collectAsStateWithLifecycle(); StatusScreen(s, vm, onBack, contentPadding) }
         ToolId.PING -> Unit
@@ -469,6 +475,119 @@ private fun WolScreen(s: WolState, vm: MainViewModel, onBack: () -> Unit, pad: P
         RunButton(false, stringResource(R.string.t_wol_save_wake), vm.wol::saveAndWake, {}, enabled = s.mac.isNotBlank(), icon = Icons.Rounded.PowerSettingsNew)
         ToolNote(stringResource(R.string.t_wol_note))
     }
+
+// ---------------------------------------------------------------- Remote Desktop (RDP)
+
+@Composable
+private fun RdpScreen(s: RdpState, vm: MainViewModel, onBack: () -> Unit, pad: PaddingValues) {
+    val context = LocalContext.current
+    var noApp by androidx.compose.runtime.remember { androidx.compose.runtime.mutableStateOf(false) }
+
+    fun launchRdp(t: RdpTarget) {
+        noApp = false
+        runCatching {
+            context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(vm.rdp.rdpUri(t))))
+        }.onFailure {
+            noApp = true
+        }
+    }
+
+    fun shareRdp(t: RdpTarget) {
+        val text = vm.rdp.rdpFileText(t)
+        val intent = Intent(Intent.ACTION_SEND).apply {
+            type = "text/plain"
+            putExtra(Intent.EXTRA_SUBJECT, "${t.name}.rdp")
+            putExtra(Intent.EXTRA_TEXT, text)
+        }
+        context.startActivity(Intent.createChooser(intent, t.name))
+    }
+
+    ToolScreen(stringResource(R.string.t_rdp), onBack, pad) {
+        s.check?.let { res ->
+            if (res.reachable) {
+                ToolCard {
+                    InfoRow(
+                        "${res.host}:${res.port}",
+                        stringResource(R.string.t_rdp_online, res.rttMs ?: 0L),
+                    )
+                }
+            } else {
+                ToolError(stringResource(R.string.t_rdp_offline, res.port, res.host))
+            }
+        }
+        if (noApp) ToolError(stringResource(R.string.t_rdp_no_app))
+
+        if (s.targets.isNotEmpty()) {
+            SectionLabel(stringResource(R.string.t_rdp_saved))
+            ToolCard {
+                s.targets.forEach { t ->
+                    Row(
+                        Modifier.fillMaxWidth().padding(start = 16.dp, end = 4.dp, top = 4.dp, bottom = 4.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        Column(Modifier.weight(1f)) {
+                            Text(t.name, style = MaterialTheme.typography.bodyLarge)
+                            Text(
+                                buildString {
+                                    append("${t.host}:${t.port}")
+                                    if (t.username.isNotBlank()) append(" · ${t.username}")
+                                },
+                                style = MaterialTheme.typography.bodySmall.copy(fontFamily = FontFamily.Monospace),
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            )
+                        }
+                        IconButton(onClick = { vm.rdp.checkPort(t.host, t.port.toString()) }) {
+                            Icon(Icons.Rounded.NetworkPing, stringResource(R.string.t_rdp_check))
+                        }
+                        Button(onClick = { launchRdp(t) }, shape = CircleShape) {
+                            Icon(Icons.Rounded.DesktopWindows, null, Modifier.size(18.dp))
+                            Spacer(Modifier.width(6.dp))
+                            Text(stringResource(R.string.t_rdp_connect))
+                        }
+                        IconButton(onClick = { vm.rdp.remove(t) }) {
+                            Icon(Icons.Rounded.Close, stringResource(R.string.delete))
+                        }
+                    }
+                }
+            }
+        }
+
+        SectionLabel(stringResource(R.string.t_rdp_add))
+        ToolField(s.name, vm.rdp::setName, stringResource(R.string.t_wol_name), keyboard = KeyboardType.Text)
+        ToolField(s.host, vm.rdp::setHost, stringResource(R.string.t_rdp_host), keyboard = KeyboardType.Uri)
+        ToolField(s.port, vm.rdp::setPort, stringResource(R.string.t_rdp_port), keyboard = KeyboardType.Number)
+        ToolField(s.username, vm.rdp::setUsername, stringResource(R.string.t_rdp_user), keyboard = KeyboardType.Text)
+
+        Row(Modifier.fillMaxWidth().padding(top = 12.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            androidx.compose.material3.OutlinedButton(
+                onClick = { vm.rdp.checkPort() },
+                enabled = s.host.isNotBlank() && !s.checking,
+                shape = CircleShape,
+                modifier = Modifier.weight(1f).height(48.dp),
+            ) {
+                Text(stringResource(R.string.t_rdp_check), maxLines = 1, overflow = TextOverflow.Ellipsis)
+            }
+            Button(
+                onClick = { vm.rdp.saveCurrent()?.let(::launchRdp) },
+                enabled = s.host.isNotBlank(),
+                shape = CircleShape,
+                modifier = Modifier.weight(1f).height(48.dp),
+            ) {
+                Icon(Icons.Rounded.DesktopWindows, null, Modifier.size(18.dp))
+                Spacer(Modifier.width(6.dp))
+                Text(stringResource(R.string.t_rdp_connect), maxLines = 1, overflow = TextOverflow.Ellipsis)
+            }
+        }
+        androidx.compose.material3.TextButton(
+            onClick = { vm.rdp.currentTarget()?.let(::shareRdp) },
+            enabled = s.host.isNotBlank(),
+            modifier = Modifier.align(Alignment.CenterHorizontally).padding(top = 4.dp),
+        ) {
+            Text(stringResource(R.string.t_rdp_share))
+        }
+        ToolNote(stringResource(R.string.t_rdp_note))
+    }
+}
 
 // ---------------------------------------------------------------- Whois
 

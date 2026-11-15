@@ -349,4 +349,25 @@
     <string name="st_reports_hour_one">דיווח אחד בשעה האחרונה</string>
     <string name="details_streams_single">יחיד · חיבור אחד לכל כיוון</string>
     <string name="details_android">מערכת</string>
+    <string name="details_readiness">מוכנות החיבור</string>
+    <string name="ready_streaming">סטרימינג 4K</string>
+    <string name="ready_calls">שיחות וידאו</string>
+    <string name="ready_gaming">גיימינג אונליין</string>
+    <string name="ready_great">מצוין</string>
+    <string name="ready_ok">טוב</string>
+    <string name="ready_limited">מוגבל</string>
+    <string name="t_rdp">שולחן עבודה מרוחק (RDP)</string>
+    <string name="td_rdp">בדיקת פורט 3389 וחיבור למחשב</string>
+    <string name="t_rdp_saved">מחשבים שמורים</string>
+    <string name="t_rdp_add">חיבור למחשב</string>
+    <string name="t_rdp_host">כתובת IP או שם מחשב</string>
+    <string name="t_rdp_port">פורט (ברירת מחדל 3389)</string>
+    <string name="t_rdp_user">שם משתמש (לא חובה)</string>
+    <string name="t_rdp_check">בדיקת פורט</string>
+    <string name="t_rdp_connect">התחבר</string>
+    <string name="t_rdp_share">שתף .rdp</string>
+    <string name="t_rdp_online">פורט RDP פתוח (%1$d ms)</string>
+    <string name="t_rdp_offline">פורט %1$d לא זמין ב-%2$s</string>
+    <string name="t_rdp_no_app">לא נמצאה אפליקציית RDP מותקנת. התקינו את Windows App (Microsoft Remote Desktop) או שתפו קובץ .rdp.</string>
+    <string name="t_rdp_note">בודק זמינות TCP בפורט RDP (ברירת מחדל 3389) ופותח את אפליקציית ה-RDP המותקנת במכשיר (כמו Windows App) או מייצא קובץ .rdp.</string>
 </resources>

@@ -155,6 +155,9 @@ fun ResultDetailsScreen(
             }
         }
 
+        // ---------------------------------------------------------------- readiness
+        ReadinessSection(r)
+
         // ---------------------------------------------------------------- connection
         SectionLabel(stringResource(R.string.connection_title))
         ToolCard(Modifier.padding(top = 0.dp)) {
@@ -278,4 +281,53 @@ fun formatBytes(b: Long): String = when {
     b >= 1_000_000_000 -> String.format(Locale.US, "%.2f GB", b / 1e9)
     b >= 1_000_000 -> String.format(Locale.US, "%.0f MB", b / 1e6)
     else -> String.format(Locale.US, "%.0f KB", b / 1e3)
+}
+
+@Composable
+private fun ReadinessSection(r: TestResult) {
+    val scheme = MaterialTheme.colorScheme
+    val streamTier = when {
+        r.downloadMbps >= 25.0 -> 2
+        r.downloadMbps >= 5.0 -> 1
+        else -> 0
+    }
+    val callTier = when {
+        r.downloadMbps >= 5.0 && r.uploadMbps >= 3.0 && r.pingMs < 100.0 && r.jitterMs < 30.0 -> 2
+        r.downloadMbps >= 1.5 && r.uploadMbps >= 1.0 && r.pingMs < 180.0 -> 1
+        else -> 0
+    }
+    val loaded = r.downLoadedPingMs ?: r.pingMs
+    val gameTier = when {
+        r.pingMs < 45.0 && r.jitterMs < 15.0 && loaded < 90.0 -> 2
+        r.pingMs < 90.0 && r.jitterMs < 35.0 -> 1
+        else -> 0
+    }
+
+    SectionLabel(stringResource(R.string.details_readiness))
+    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+        ReadinessChip(stringResource(R.string.ready_streaming), streamTier, scheme)
+        ReadinessChip(stringResource(R.string.ready_calls), callTier, scheme)
+        ReadinessChip(stringResource(R.string.ready_gaming), gameTier, scheme)
+    }
+}
+
+@Composable
+private fun RowScope.ReadinessChip(title: String, tier: Int, scheme: androidx.compose.material3.ColorScheme) {
+    val (bg, fg, labelRes) = when (tier) {
+        2 -> Triple(scheme.primaryContainer, scheme.onPrimaryContainer, R.string.ready_great)
+        1 -> Triple(scheme.secondaryContainer, scheme.onSecondaryContainer, R.string.ready_ok)
+        else -> Triple(scheme.errorContainer, scheme.onErrorContainer, R.string.ready_limited)
+    }
+    Surface(
+        shape = RoundedCornerShape(18.dp),
+        color = bg,
+        contentColor = fg,
+        modifier = Modifier.weight(1f),
+    ) {
+        Column(Modifier.padding(horizontal = 10.dp, vertical = 12.dp), horizontalAlignment = Alignment.CenterHorizontally) {
+            Text(stringResource(labelRes), style = MaterialTheme.typography.titleSmall)
+            Spacer(Modifier.height(2.dp))
+            Text(title, style = MaterialTheme.typography.labelSmall, color = fg.copy(alpha = 0.8f), maxLines = 1)
+        }
+    }
 }

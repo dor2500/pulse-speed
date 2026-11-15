@@ -88,6 +88,10 @@ import com.dorp.pulse.ui.theme.PulseTheme
 import com.dorp.pulse.ui.theme.isDark
 
 class MainActivity : ComponentActivity() {
+    companion object {
+        const val EXTRA_START_TEST = "start_test"
+    }
+
     override fun attachBaseContext(newBase: Context) {
         super.attachBaseContext(localizedContext(newBase))
     }
@@ -95,8 +99,13 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
+        val autoStart = intent?.getBooleanExtra(EXTRA_START_TEST, false) == true
+        if (autoStart) intent?.removeExtra(EXTRA_START_TEST)
         setContent {
             val vm: MainViewModel = viewModel()
+            androidx.compose.runtime.LaunchedEffect(autoStart) {
+                if (autoStart && !vm.state.value.running) vm.start()
+            }
             val settings by vm.settingsStore.settings.collectAsStateWithLifecycle()
             val dark = isDark(settings.theme)
             DisposableEffect(dark) {

@@ -401,3 +401,106 @@ class StatusController(private val cloud: com.dorp.pulse.data.CloudSync, scope: 
         }
     }
 }
+
+// ---------------------------------------------------------------- Remote Desktop (RDP)
+
+data class RdpTarget(val name: String, val host: String, val port: Int = 3389, val username: String = "")
+
+data class RdpCheckResult(val host: String, val port: Int, val reachable: Boolean, val rttMs: Long? = null)
+
+data class RdpState(
+    val targets: List<RdpTarget> = emptyList(),
+    val name: String = "",
+    val host: String = "",
+    val port: String = "3389",
+    val username: String = "",
+    val checking: Boolean = false,
+    val check: RdpCheckResult? = null,
+)
+
+class RdpController(app: Application, scope: CoroutineScope) : ToolController<RdpState>(RdpState(), scope) {
+    private val prefs = app.getSharedPreferences("rdp", Context.MODE_PRIVATE)
+
+    init { _state.update { it.copy(targets = load()) } }
+
+    fun setName(v: String) = _state.update { it.copy(name = v) }
+    fun setHost(v: String) = _state.update { it.copy(host = v) }
+    fun setPort(v: String) = _state.update { it.copy(port = v.filter { ch -> ch.isDigit() }.take(5)) }
+    fun setUsername(v: String) = _state.update { it.copy(username = v) }
+
+    fun currentTarget(): RdpTarget? {
+        val s = _state.value
+        val host = s.host.trim().ifEmpty { return null }
+        val port = s.port.toIntOrNull()?.takeIf { it in 1..65535 } ?: 3389
+        val name = s.name.trim().ifEmpty { host }
+        return RdpTarget(name, host, port, s.username.trim())
+    }
+
+    fun saveCurrent(): RdpTarget? {
+        val t = currentTarget() ?: return null
+        val list = listOf(t) + _state.value.targets.filterNot { it.host == t.host && it.port == t.port }
+        _state.update { it.copy(targets = list, name = "", host = "", username = "") }
+        persist(list)
+        return t
+    }
+
+    fun remove(t: RdpTarget) {
+        val list = _state.value.targets - t
+        _state.update { it.copy(targets = list) }
+        persist(list)
+    }
+
+    fun checkPort(host: String = _state.value.host, portStr: String = _state.value.port) {
+        val h = host.trim().ifEmpty { return }
+        val p = portStr.toIntOrNull()?.takeIf { it in 1..65535 } ?: 3389
+        _state.update { it.copy(checking = true, check = null) }
+        launchJob { id ->
+            val t0 = System.currentTimeMillis()
+            val ok = runCatching {
+                java.net.Socket().use { sock ->
+                    sock.connect(java.net.InetSocketAddress(h, p), 2500)
+                }
+            }.isSuccess
+            val rtt = System.currentTimeMillis() - t0
+            if (id == runId) _state.update { it.copy(check = RdpCheckResult(h, p, ok, if (ok) rtt else null)) }
+        }
+    }
+
+    override fun onError(id: Int, e: Exception) { if (id == runId) _state.update { it.copy(checking = false) } }
+    override fun onFinished(id: Int) { if (id == runId) _state.update { it.copy(checking = false) } }
+
+    fun rdpUri(t: RdpTarget): String {
+        val addr = if (t.port == 3389) t.host else "${t.host}:${t.port}"
+        val encAddr = java.net.URLEncoder.encode(addr, "UTF-8").replace("+", "%20")
+        val base = "rdp://full%20address=s:$encAddr"
+        return if (t.username.isNotBlank()) {
+            val encUser = java.net.URLEncoder.encode(t.username, "UTF-8").replace("+", "%20")
+            "$base&username=s:$encUser"
+        } else base
+    }
+
+    fun rdpFileText(t: RdpTarget): String = buildString {
+        val addr = if (t.port == 3389) t.host else "${t.host}:${t.port}"
+        appendLine("full address:s:$addr")
+        if (t.username.isNotBlank()) appendLine("username:s:${t.username}")
+        appendLine("prompt for credentials:i:1")
+        appendLine("administrative session:i:0")
+    }
+
+    private fun persist(list: List<RdpTarget>) {
+        val arr = JSONArray()
+        list.forEach {
+            arr.put(JSONObject().put("n", it.name).put("h", it.host).put("p", it.port).put("u", it.username))
+        }
+        prefs.edit().putString("targets", arr.toString()).apply()
+    }
+
+    private fun load(): List<RdpTarget> = runCatching {
+        val arr = JSONArray(prefs.getString("targets", "[]"))
+        List(arr.length()) { i ->
+            arr.getJSONObject(i).let {
+                RdpTarget(it.getString("n"), it.getString("h"), it.optInt("p", 3389), it.optString("u", ""))
+            }
+        }
+    }.getOrDefault(emptyList())
+}

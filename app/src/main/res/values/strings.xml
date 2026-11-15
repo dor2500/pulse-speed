@@ -347,4 +347,25 @@
     <string name="st_reports_hour_one">1 report in the last hour</string>
     <string name="details_streams_single">Single · 1 connection each way</string>
     <string name="details_android">System</string>
+    <string name="details_readiness">Connection readiness</string>
+    <string name="ready_streaming">4K Streaming</string>
+    <string name="ready_calls">Video Calls</string>
+    <string name="ready_gaming">Online Gaming</string>
+    <string name="ready_great">Great</string>
+    <string name="ready_ok">Good</string>
+    <string name="ready_limited">Limited</string>
+    <string name="t_rdp">Remote Desktop (RDP)</string>
+    <string name="td_rdp">Check port 3389 &amp; connect to a PC</string>
+    <string name="t_rdp_saved">Saved PCs</string>
+    <string name="t_rdp_add">Connect to a PC</string>
+    <string name="t_rdp_host">Host or IP address</string>
+    <string name="t_rdp_port">Port (default 3389)</string>
+    <string name="t_rdp_user">Username (optional)</string>
+    <string name="t_rdp_check">Check port</string>
+    <string name="t_rdp_connect">Connect</string>
+    <string name="t_rdp_share">Share .rdp</string>
+    <string name="t_rdp_online">RDP port open (%1$d ms)</string>
+    <string name="t_rdp_offline">Port %1$d unreachable on %2$s</string>
+    <string name="t_rdp_no_app">No RDP client app found. Install Windows App (Microsoft Remote Desktop) or share the .rdp file.</string>
+    <string name="t_rdp_note">Checks TCP reachability on the RDP port (default 3389) and launches your installed RDP client app (e.g. Windows App) or exports an .rdp config.</string>
 </resources>
