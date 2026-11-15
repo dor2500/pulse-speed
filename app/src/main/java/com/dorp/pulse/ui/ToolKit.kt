@@ -1,5 +1,8 @@
 package com.dorp.pulse.ui
 
+import android.content.ClipData
+import android.content.ClipboardManager
+import android.content.Context
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.combinedClickable
@@ -43,11 +46,10 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
-import androidx.compose.ui.platform.LocalClipboardManager
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
@@ -155,14 +157,18 @@ fun ToolCard(modifier: Modifier = Modifier, content: @Composable ColumnScope.() 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun InfoRow(label: String, value: String?, mono: Boolean = false, icon: ImageVector? = null) {
-    val clipboard = LocalClipboardManager.current
+    val context = LocalContext.current
     val haptics = LocalHapticFeedback.current
     val v = value?.takeIf { it.isNotBlank() } ?: "—"
     Row(
         Modifier
             .fillMaxWidth()
             .combinedClickable(onClick = {}, onLongClick = {
-                if (value != null) { clipboard.setText(AnnotatedString(value)); haptics.performHapticFeedback(HapticFeedbackType.LongPress) }
+                if (value != null) {
+                    val cm = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+                    cm.setPrimaryClip(ClipData.newPlainText(label, value))
+                    haptics.performHapticFeedback(HapticFeedbackType.LongPress)
+                }
             })
             .padding(horizontal = 16.dp, vertical = 10.dp),
         verticalAlignment = Alignment.CenterVertically,

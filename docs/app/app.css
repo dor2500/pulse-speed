@@ -100,7 +100,8 @@ input { font: inherit; color: inherit; }
 .metric.active.t .badge { background: var(--tertiary); color: var(--surface); }
 
 /* Gauge stage */
-.stage { position: relative; width: 100%; max-width: 420px; height: 264px; margin: 4px auto 0; }
+.stage { position: relative; width: 100%; max-width: 420px; height: 264px; margin: 4px auto 0; transition: height .35s cubic-bezier(.34,1.56,.64,1); }
+.stage.done { height: 160px; }
 .stage canvas { position: absolute; inset: 0; width: 100%; height: 100%; }
 .stage .centre { position: absolute; inset: 0; display: grid; place-items: center; text-align: center; pointer-events: none; }
 .stage.idle { cursor: pointer; }

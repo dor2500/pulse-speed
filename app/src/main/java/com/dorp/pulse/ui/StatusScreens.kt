@@ -22,10 +22,10 @@ import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.rounded.OpenInNew
 import androidx.compose.material.icons.rounded.CheckCircle
 import androidx.compose.material.icons.rounded.Error
 import androidx.compose.material.icons.rounded.Flag
-import androidx.compose.material.icons.rounded.OpenInNew
 import androidx.compose.material.icons.rounded.Refresh
 import androidx.compose.material.icons.rounded.Warning
 import androidx.compose.material3.AlertDialog
@@ -239,7 +239,7 @@ private fun ServiceDetail(svc: Service, s: StatusUiState, vm: MainViewModel, pad
                         verticalAlignment = Alignment.CenterVertically,
                     ) {
                         Text(url.removePrefix("https://").removePrefix("http://"), color = MaterialTheme.colorScheme.primary, modifier = Modifier.weight(1f))
-                        Icon(Icons.Rounded.OpenInNew, null, Modifier.size(18.dp), tint = MaterialTheme.colorScheme.primary)
+                        Icon(Icons.AutoMirrored.Rounded.OpenInNew, null, Modifier.size(18.dp), tint = MaterialTheme.colorScheme.primary)
                     }
                 }
             }

@@ -561,7 +561,7 @@ function renderTest() {
     <div class="server-row"><div class="badge">${icon(settings.source === "cloudflare" ? "auto_awesome" : "dns")}</div>
       <div class="txt"><div class="label-m muted">${S.server_title}</div><div class="body-m">${esc(t.server ? t.server.serverLabel : settings.source === "cloudflare" ? S.server_cf_note : S.server_auto_long)}</div></div></div>
     <div class="metrics" id="metrics">${metricsHtml()}</div>
-    <div class="stage${t.phase === "idle" || t.phase === "error" ? " idle" : ""}" id="stage" role="button" tabindex="0" aria-label="${S.go}">
+    <div class="stage${t.phase === "idle" || t.phase === "error" ? " idle" : ""}${t.phase === "done" ? " done" : ""}" id="stage" role="button" tabindex="0" aria-label="${S.go}">
       <canvas id="gauge"></canvas><div class="centre" id="centre">${centreHtml()}</div>
       ${t.phase === "idle" || t.phase === "error" ? `<div class="hint body-m muted">${S.tap_to_start}</div>` : ""}</div>
     <div class="actions" id="actions">${actionsHtml()}</div>

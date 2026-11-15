@@ -21,11 +21,11 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.ArrowBack
+import androidx.compose.material.icons.automirrored.rounded.CallSplit
 import androidx.compose.material.icons.rounded.Android
 import androidx.compose.material.icons.rounded.ArrowDownward
 import androidx.compose.material.icons.rounded.ArrowUpward
 import androidx.compose.material.icons.rounded.Business
-import androidx.compose.material.icons.rounded.CallSplit
 import androidx.compose.material.icons.rounded.Delete
 import androidx.compose.material.icons.rounded.Dns
 import androidx.compose.material.icons.rounded.Home
@@ -163,7 +163,7 @@ fun ResultDetailsScreen(
             DetailRow(Icons.Rounded.Dns, stringResource(R.string.server), r.server)
             d?.protocol?.let { DetailRow(Icons.Rounded.Language, stringResource(R.string.protocol), it) }
             if (d?.downStreams != null) DetailRow(
-                Icons.Rounded.CallSplit, stringResource(R.string.details_connections),
+                Icons.AutoMirrored.Rounded.CallSplit, stringResource(R.string.details_connections),
                 if (d.downStreams <= 1 && (d.upStreams ?: 1) <= 1) stringResource(R.string.details_streams_single)
                 else stringResource(R.string.details_streams, d.downStreams, d.upStreams ?: 0),
             )

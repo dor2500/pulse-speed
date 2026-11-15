@@ -14,6 +14,7 @@ import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -42,6 +43,7 @@ import androidx.compose.material.icons.rounded.Business
 import androidx.compose.material.icons.rounded.Stop
 import androidx.compose.material.icons.rounded.Dns
 import androidx.compose.material.icons.rounded.ErrorOutline
+import androidx.compose.material.icons.rounded.KeyboardArrowDown
 import androidx.compose.material.icons.rounded.Language
 import androidx.compose.material.icons.rounded.Speed
 import androidx.compose.material.icons.rounded.Refresh
@@ -78,6 +80,9 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -168,6 +173,8 @@ fun TestScreen(
         if (state.phase == Phase.DONE && state.resultTime != null) {
             TextButton(onClick = onDetails) {
                 Text(stringResource(R.string.details_open), style = MaterialTheme.typography.titleSmall)
+                Spacer(Modifier.width(4.dp))
+                Icon(Icons.AutoMirrored.Rounded.ArrowForward, null, Modifier.size(16.dp))
             }
         }
 
@@ -601,33 +608,76 @@ private fun BufferbloatCard(state: TestUiState) {
 private fun ConnectionCard(state: TestUiState) {
     val scheme = MaterialTheme.colorScheme
     val server = state.server
+    var expanded by rememberSaveable { mutableStateOf(false) }
+    val chevronRot by animateFloatAsState(if (expanded) 180f else 0f, label = "chevron")
+    val summary = listOfNotNull(
+        server?.isp?.ifBlank { null },
+        server?.ip?.ifBlank { null },
+    ).joinToString(" · ").ifBlank { state.network.label() }
+
     Card(
         Modifier.fillMaxWidth().padding(vertical = 4.dp),
         shape = RoundedCornerShape(CornerLarge),
         colors = CardDefaults.cardColors(containerColor = scheme.surfaceContainerLow),
     ) {
         Column(Modifier.padding(vertical = 4.dp)) {
-            Text(
-                stringResource(R.string.connection_title),
-                style = MaterialTheme.typography.titleMedium,
-                modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
-            )
-            InfoRow(Icons.Rounded.Business, stringResource(R.string.provider), server?.isp?.ifBlank { null } ?: "—")
-            InfoRow(Icons.Rounded.Dns, stringResource(R.string.server), server?.serverLabel?.ifBlank { null } ?: "—")
-            InfoRow(Icons.Rounded.Language, stringResource(R.string.ip_address), server?.ip?.ifBlank { null } ?: "—")
-            InfoRow(state.network.icon(), stringResource(R.string.network), state.network.label())
-            state.connection?.wifiLinkSpeedMbps?.let {
-                InfoRow(Icons.Rounded.Speed, stringResource(R.string.link_speed), "$it Mbps")
+            Row(
+                Modifier
+                    .fillMaxWidth()
+                    .clickable { expanded = !expanded }
+                    .padding(horizontal = 16.dp, vertical = 10.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Text(
+                    stringResource(R.string.connection_title),
+                    style = MaterialTheme.typography.titleMedium,
+                )
+                if (!expanded) {
+                    Spacer(Modifier.width(12.dp))
+                    Text(
+                        summary,
+                        style = MaterialTheme.typography.bodySmall,
+                        color = scheme.onSurfaceVariant,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                        textAlign = TextAlign.End,
+                        modifier = Modifier.weight(1f),
+                    )
+                } else {
+                    Spacer(Modifier.weight(1f))
+                }
+                Spacer(Modifier.width(6.dp))
+                Icon(
+                    Icons.Rounded.KeyboardArrowDown,
+                    contentDescription = null,
+                    tint = scheme.onSurfaceVariant,
+                    modifier = Modifier.size(20.dp).graphicsLayer { rotationZ = chevronRot },
+                )
             }
-            state.connection?.wifiFrequencyBand?.let {
-                InfoRow(Icons.Rounded.Wifi, stringResource(R.string.wifi_band), it)
+            AnimatedVisibility(
+                visible = expanded,
+                enter = fadeIn() + expandVertically(),
+                exit = fadeOut() + shrinkVertically(),
+            ) {
+                Column {
+                    InfoRow(Icons.Rounded.Business, stringResource(R.string.provider), server?.isp?.ifBlank { null } ?: "—")
+                    InfoRow(Icons.Rounded.Dns, stringResource(R.string.server), server?.serverLabel?.ifBlank { null } ?: "—")
+                    InfoRow(Icons.Rounded.Language, stringResource(R.string.ip_address), server?.ip?.ifBlank { null } ?: "—")
+                    InfoRow(state.network.icon(), stringResource(R.string.network), state.network.label())
+                    state.connection?.wifiLinkSpeedMbps?.let {
+                        InfoRow(Icons.Rounded.Speed, stringResource(R.string.link_speed), "$it Mbps")
+                    }
+                    state.connection?.wifiFrequencyBand?.let {
+                        InfoRow(Icons.Rounded.Wifi, stringResource(R.string.wifi_band), it)
+                    }
+                    InfoRow(
+                        Icons.AutoMirrored.Rounded.ArrowForward,
+                        stringResource(R.string.protocol),
+                        server?.protocol?.ifBlank { null } ?: "—",
+                        last = true,
+                    )
+                }
             }
-            InfoRow(
-                Icons.AutoMirrored.Rounded.ArrowForward,
-                stringResource(R.string.protocol),
-                server?.protocol?.ifBlank { null } ?: "—",
-                last = true,
-            )
         }
     }
 }
