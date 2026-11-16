@@ -6,7 +6,17 @@ plugins {
 
 // Google sign-in and cloud sync need a Firebase project. Drop its google-services.json into app/
 // (see docs/firebase-setup.md); without it the app builds and runs with sign-in hidden.
-if (file("google-services.json").exists()) apply(plugin = "com.google.gms.google-services")
+if (file("google-services.json").exists()) {
+    apply(plugin = "com.google.gms.google-services")
+} else if (gradle.startParameter.taskNames.any { it.contains("Release", ignoreCase = true) } &&
+    !project.hasProperty("allowNoFirebase")
+) {
+    // 1.9.2–1.10.0 shipped like this and the sign-in card silently disappeared for everyone.
+    throw GradleException(
+        "app/google-services.json is missing, so this release would ship without Google sign-in. " +
+            "Copy it in (docs/firebase-setup.md), or pass -PallowNoFirebase to build without sign-in on purpose."
+    )
+}
 
 android {
     namespace = "com.dorp.pulse"
@@ -16,8 +26,8 @@ android {
         applicationId = "com.dorp.pulse"
         minSdk = 26
         targetSdk = 36
-        versionCode = 18
-        versionName = "1.10.0"
+        versionCode = 19
+        versionName = "1.10.1"
     }
 
     // "github" is the sideloaded build that updates itself from GitHub Releases.
